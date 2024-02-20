@@ -1,0 +1,92 @@
+import curses
+from enum import Enum, auto
+from typing import List, Any
+from noise import pnoise2
+
+
+class Biome(Enum):
+    OCEAN = auto()
+    PLAINS = auto()
+    FOREST = auto()
+    DESERT = auto()
+    FOOTHILLS = auto()
+    MOUNTAINS = auto()
+
+
+class BiomeColorPair(Enum):
+    """
+    Biome with their curses color pair mapping.
+    """
+    OCEAN = 1
+    PLAINS = 2
+    FOREST = 2
+    DESERT = 3
+    FOOTHILLS = 4
+    MOUNTAINS = 5
+
+
+class BiomeManager:
+    def __init__(self, stdscr: Any, width: int, height: int):
+        self.stdscr = stdscr
+        self.width = width
+        self.height = height
+
+        self.map: List[List[float]] = self._generate_biome_map()
+
+    def _generate_biome_map(self, scale: int = 0.05):
+        """
+        Generate a biome map using Perlin noise.
+        """
+        biome_map = [
+            [pnoise2(x * scale, y * scale) for x in range(self.width)]
+            for y in range(self.height)
+        ]
+        return biome_map
+
+    def draw(self):
+        """
+        Color the screen according to the biome map.
+        """
+        for y in range(self.height - 1):
+            for x in range(self.width - 1):
+                biome = self.get_biome(self.map[y][x])
+                color = BiomeColorPair[biome.name]
+
+                self.stdscr.addstr(
+                    y,
+                    x,
+                    " ",
+                    curses.color_pair(color.value),
+                )
+        self.stdscr.refresh()
+
+    def get_biome_color(self, biome: Biome) -> int:
+        """
+        Get the color pair for a given biome.
+        """
+        color = BiomeColorPair[biome.name]
+        return curses.color_pair(color.value)
+
+    def get_biome_by_coords(self, x: int, y: int) -> str:
+        """
+        Get the biome for a given set of coordinates.
+        """
+        value = self.map[y][x]
+        return self.get_biome(value)
+
+    def get_biome(self, value: float) -> str:
+        """
+        Get the biome for a given value.
+        """
+        if value < -0.4:
+            return Biome.OCEAN
+        elif value < -0.2:
+            return Biome.DESERT
+        elif value < 0.2:
+            return Biome.PLAINS
+        elif value < 0.5:
+            return Biome.FOREST
+        elif value < 0.65:
+            return Biome.FOOTHILLS
+        else:
+            return Biome.MOUNTAINS
