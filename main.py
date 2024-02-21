@@ -1,4 +1,5 @@
 import curses
+from ecosphere.common.systeminfo import SystemInfo
 
 from ecosphere.overworld import Overworld
 from ecosphere.system import System
@@ -39,6 +40,7 @@ def setup_stdscr():
 if __name__ == "__main__":
     stdscr = setup_stdscr()
 
+    sysinfo = SystemInfo(stdscr)
     ov = Overworld(stdscr)
-    sys = System(ov)
+    sys = System(ov, sysinfo)
     sys.run()
