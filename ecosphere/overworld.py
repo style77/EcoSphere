@@ -5,9 +5,11 @@ from typing import Any
 from ecosphere.abc.entity import Entity
 from ecosphere.abc.position import Position
 from ecosphere.biome import BiomeManager
+from ecosphere.common.singleton import SingletonMeta
+from ecosphere.plants import Tree
 
 
-class Overworld:
+class Overworld(metaclass=SingletonMeta):
     def __init__(self, stdscr: Any):
         self.stdscr = stdscr
 
@@ -17,6 +19,9 @@ class Overworld:
         self.entities = []
 
         self.biome = BiomeManager(stdscr, self.width, self.height)
+
+    def _calculate_entity_cap(self, frequency: float = 0.25):
+        return self.width * self.height * frequency
 
     def _calculate_position(self):  # UNSAFE
         occupied = True
@@ -50,12 +55,28 @@ class Overworld:
             entity: the entity to add to the overworld
             position: the position to add the entity to
         """
-        if position is None:
+        if not position:
             position = self._calculate_position()
+            biome = self.biome.get_biome_by_coords(position.x, position.y)
+        else:
+            biome = self.biome.get_biome_by_coords(position.x, position.y)
 
-        entity = entity.create(position)
+        spawn_rate = self.biome.ENTITY_BIOME_SPAWN_RATES.get(entity.__name__, {}).get(
+            biome, 0
+        )
 
-        self.entities.append(entity)
+        if random.random() < spawn_rate:
+            entity = entity.create(position)
+            self.entities.append(entity)
+
+    def spawn_entities(self):
+        """
+        Spawn all the entities in the overworld.
+        """
+        for entity_class in [Tree]:
+            cap = self._calculate_entity_cap(entity_class.frequency)
+            for _ in range(round(cap)):
+                self.spawn_entity(entity_class)
 
     def draw(self):
         """

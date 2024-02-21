@@ -29,6 +29,7 @@ class Tree(Plant):
         id: unique identifier for the entity
         position: Position object representing the entity's location in the overworld
     """
+    frequency = 0.25
 
     def __init__(self, position: Position):
         super().__init__(position)
