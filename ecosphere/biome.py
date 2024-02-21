@@ -1,6 +1,7 @@
 import curses
 from enum import Enum, auto
-from typing import List, Any
+from functools import lru_cache
+from typing import List, Any, Literal, Dict
 from noise import pnoise2
 
 
@@ -17,15 +18,48 @@ class BiomeColorPair(Enum):
     """
     Biome with their curses color pair mapping.
     """
+
     OCEAN = 1
-    PLAINS = 2
-    FOREST = 2
-    DESERT = 3
-    FOOTHILLS = 4
-    MOUNTAINS = 5
+    DESERT = 2
+    PLAINS = 3
+    FOREST = 4
+    FOOTHILLS = 5
+    MOUNTAINS = 6
 
 
 class BiomeManager:
+    ENTITY_BIOME_SPAWN_RATES: Dict[
+        str,
+        Dict[
+            Literal[
+                Biome.OCEAN,
+                Biome.PLAINS,
+                Biome.FOREST,
+                Biome.DESERT,
+                Biome.FOOTHILLS,
+                Biome.MOUNTAINS,
+            ],
+            str,
+        ],
+    ] = {
+        "Tree": {
+            Biome.OCEAN: 0,
+            Biome.PLAINS: 0.2,
+            Biome.FOREST: 0.5,
+            Biome.DESERT: 0.1,
+            Biome.FOOTHILLS: 0.0,
+            Biome.MOUNTAINS: 0.0,
+        },
+        "Animal": {
+            Biome.OCEAN: 0,
+            Biome.PLAINS: 0.8,
+            Biome.FOREST: 0.6,
+            Biome.DESERT: 0.2,
+            Biome.FOOTHILLS: 0.3,
+            Biome.MOUNTAINS: 0.1,
+        },
+    }
+
     def __init__(self, stdscr: Any, width: int, height: int):
         self.stdscr = stdscr
         self.width = width
@@ -60,6 +94,7 @@ class BiomeManager:
                 )
         self.stdscr.refresh()
 
+    @lru_cache
     def get_biome_color(self, biome: Biome) -> int:
         """
         Get the color pair for a given biome.
@@ -67,6 +102,7 @@ class BiomeManager:
         color = BiomeColorPair[biome.name]
         return curses.color_pair(color.value)
 
+    @lru_cache
     def get_biome_by_coords(self, x: int, y: int) -> str:
         """
         Get the biome for a given set of coordinates.
@@ -74,6 +110,7 @@ class BiomeManager:
         value = self.map[y][x]
         return self.get_biome(value)
 
+    @lru_cache
     def get_biome(self, value: float) -> str:
         """
         Get the biome for a given value.
