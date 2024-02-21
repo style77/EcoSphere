@@ -1,15 +1,16 @@
 import curses
+from ecosphere.common.singleton import SingletonMeta
 
 from ecosphere.overworld import Overworld
 from ecosphere.plants import Tree
 
 ENTITIES = {
-    Tree: 700,
+    Tree: 800,
 }
 HOUR_LENGTH = 10  # seconds
 
 
-class System:
+class System(metaclass=SingletonMeta):
     def __init__(self, overworld: Overworld):
         self.overworld = overworld
 
@@ -20,13 +21,8 @@ class System:
             return True
         return False
 
-    def spawn_entities(self):
-        for key, value in ENTITIES.items():
-            for _ in range(value):
-                self.overworld.spawn_entity(key)
-
     def run(self):
-        self.spawn_entities()
+        self.overworld.spawn_entities()
 
         while True:
             self.overworld.update()
