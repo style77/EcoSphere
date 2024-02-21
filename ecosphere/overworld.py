@@ -7,6 +7,7 @@ from ecosphere.abc.position import Position
 from ecosphere.biome import BiomeManager
 from ecosphere.common.singleton import SingletonMeta
 from ecosphere.plants import Tree
+from ecosphere.common.event_bus import bus
 
 
 class Overworld(metaclass=SingletonMeta):
@@ -68,6 +69,7 @@ class Overworld(metaclass=SingletonMeta):
         if random.random() < spawn_rate:
             entity = entity.create(position)
             self.entities.append(entity)
+            bus.emit("entity:created", entity)
 
     def spawn_entities(self):
         """
