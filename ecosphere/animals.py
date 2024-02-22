@@ -77,13 +77,6 @@ class Crab(Animal):
     def __init__(self, position: Position, representation: str = "🦀"):
         super().__init__(position, representation)
 
-    def __repr__(self):
-        return f"Crab(id={self.id}, position={self.position})"
-
-    @classmethod
-    def create(cls, position: Position, biome: Biome) -> "Crab":
-        return cls(position=position, representation=cls.get_representation(biome))
-
-    @classmethod
-    def get_representation(cls, biome: Biome):
+    @staticmethod
+    def get_representation(biome: Biome):
         return "🦀"

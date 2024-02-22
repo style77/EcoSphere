@@ -86,13 +86,6 @@ class Flower(Plant):
     ):
         super().__init__(position, representation)
 
-    def __repr__(self):
-        return f"Flower(id={self.id}, position={self.position})"
-
-    @classmethod
-    def create(cls, position: Position, biome: Biome) -> "Flower":
-        return cls(position=position, representation=cls.get_representation(biome))
-
     @staticmethod
     def get_representation(biome: Biome):
         if biome in [Biome.FOREST, Biome.PLAINS]:

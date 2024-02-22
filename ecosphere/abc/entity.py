@@ -1,7 +1,6 @@
 from abc import (
     ABC,
     abstractmethod,
-    abstractclassmethod,
     abstractstaticmethod,
 )
 from ecosphere.biome import Biome
@@ -9,12 +8,15 @@ from ecosphere.biome import Biome
 from ecosphere.utils import generate_id
 from ecosphere.abc.position import Position
 
+from typing import NoReturn
+
 
 class Entity(ABC):
     """
     Abstract class representing an entity in the overworld.
     Can be either a plant, tree, animal, or any other entity.
     """
+
     dynamic: bool = False
 
     def __init__(self, position: Position, representation: str):
@@ -22,25 +24,30 @@ class Entity(ABC):
         self.position = position
         self._representation = representation
 
-    @abstractmethod
     def __repr__(self):
         return f"{self.__class__.__name__}(id={self.id}, position={self.position})"
 
     @classmethod
-    @abstractclassmethod
-    def create(cls, position: Position, biome: Biome):
-        raise NotImplementedError
+    def create(cls, position: Position, biome: Biome) -> "Entity":
+        return cls(position=position, representation=cls.get_representation(biome))
 
     @property
-    def representation(self):
+    def representation(self) -> str:
         return self._representation
 
     @staticmethod
     @abstractstaticmethod
-    def get_representation(biome: Biome):
+    def get_representation(biome: Biome) -> str:
+        """
+        Return the representation of the entity based on the biome. This method should be implemented by the specific entity class.
+        """
         raise NotImplementedError
 
-    def move(self, x: int, y: int, overwrite: bool = False):
+    @abstractmethod
+    def update(self):
+        raise NotImplementedError
+
+    def move(self, x: int, y: int, overwrite: bool = False) -> NoReturn:
         """
         Move the entity by the specified amount. If overwrite is True, the entity's position is set to the new position.
 
@@ -54,7 +61,3 @@ class Entity(ABC):
         else:
             self.position.x += x
             self.position.y += y
-
-    @abstractmethod
-    def update(self):
-        raise NotImplementedError
