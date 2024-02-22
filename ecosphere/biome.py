@@ -28,38 +28,6 @@ class BiomeColorPair(Enum):
 
 
 class BiomeManager:
-    ENTITY_BIOME_SPAWN_RATES: Dict[
-        str,
-        Dict[
-            Literal[
-                Biome.OCEAN,
-                Biome.PLAINS,
-                Biome.FOREST,
-                Biome.DESERT,
-                Biome.FOOTHILLS,
-                Biome.MOUNTAINS,
-            ],
-            str,
-        ],
-    ] = {
-        "Tree": {
-            Biome.OCEAN: 0,
-            Biome.PLAINS: 0.2,
-            Biome.FOREST: 0.5,
-            Biome.DESERT: 0.1,
-            Biome.FOOTHILLS: 0.0,
-            Biome.MOUNTAINS: 0.0,
-        },
-        "Animal": {
-            Biome.OCEAN: 0,
-            Biome.PLAINS: 0.8,
-            Biome.FOREST: 0.6,
-            Biome.DESERT: 0.2,
-            Biome.FOOTHILLS: 0.3,
-            Biome.MOUNTAINS: 0.1,
-        },
-    }
-
     def __init__(self, stdscr: Any, width: int, height: int):
         self.stdscr = stdscr
         self.width = width
@@ -92,7 +60,6 @@ class BiomeManager:
                     " ",
                     curses.color_pair(color.value),
                 )
-        self.stdscr.refresh()
 
     @lru_cache
     def get_biome_color(self, biome: Biome) -> int:
@@ -103,7 +70,16 @@ class BiomeManager:
         return curses.color_pair(color.value)
 
     @lru_cache
-    def get_biome_by_coords(self, x: int, y: int) -> str:
+    def get_biome_by_coords(
+        self, x: int, y: int
+    ) -> Literal[
+        Biome.OCEAN,
+        Biome.PLAINS,
+        Biome.FOREST,
+        Biome.DESERT,
+        Biome.FOOTHILLS,
+        Biome.MOUNTAINS,
+    ]:
         """
         Get the biome for a given set of coordinates.
         """
@@ -111,7 +87,16 @@ class BiomeManager:
         return self.get_biome(value)
 
     @lru_cache
-    def get_biome(self, value: float) -> str:
+    def get_biome(
+        self, value: float
+    ) -> Literal[
+        Biome.OCEAN,
+        Biome.PLAINS,
+        Biome.FOREST,
+        Biome.DESERT,
+        Biome.FOOTHILLS,
+        Biome.MOUNTAINS,
+    ]:
         """
         Get the biome for a given value.
         """
