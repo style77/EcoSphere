@@ -19,10 +19,9 @@ class Plant(Entity):
         position: Position object representing the entity's location in the overworld
         representation: str representing the plant's representation in the overworld
     """
-    dynamic: bool = False
-
     def __init__(self, position: Position, representation: str):
-        super().__init__(position, representation)
+        dynamic = False
+        super().__init__(position, representation, dynamic)
 
     def move(self, x: int, y: int, overwrite: bool = False):
         raise NotImplementedError("Plants cannot move.")

@@ -17,11 +17,9 @@ class Animal(Entity):
         position: Position object representing the entity's location in the overworld
         representation: str representing the animal's representation in the overworld
     """
-
-    dynamic: bool = True
-
     def __init__(self, position: Position, representation: str):
-        super().__init__(position, representation)
+        dynamic = True
+        super().__init__(position, representation, dynamic)
 
     def _calculate_position(
         self, overworld: "Overworld", biome_manager: BiomeManager

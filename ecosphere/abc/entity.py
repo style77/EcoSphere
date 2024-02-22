@@ -16,13 +16,11 @@ class Entity(ABC):
     Abstract class representing an entity in the overworld.
     Can be either a plant, tree, animal, or any other entity.
     """
-
-    dynamic: bool = False
-
-    def __init__(self, position: Position, representation: str):
+    def __init__(self, position: Position, representation: str, dynamic: bool):
         self.id = generate_id(self.__class__.__name__)
         self.position = position
         self._representation = representation
+        self.dynamic = dynamic
 
     def __repr__(self):
         return f"{self.__class__.__name__}(id={self.id}, position={self.position})"
