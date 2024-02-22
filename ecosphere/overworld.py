@@ -1,12 +1,12 @@
 import curses
 import random
-from typing import Any
+from typing import Any, List
 
 from ecosphere.abc.entity import Entity
 from ecosphere.abc.position import Position
-from ecosphere.biome import BiomeManager
+from ecosphere.biome import Biome, BiomeManager
 from ecosphere.common.singleton import SingletonMeta
-from ecosphere.plants import Tree
+from ecosphere.config import ENTITIES, ENTITY_BIOME_SPAWN_RATES
 from ecosphere.common.event_bus import bus
 
 
@@ -17,9 +17,11 @@ class Overworld(metaclass=SingletonMeta):
         self.width = self.stdscr.getmaxyx()[1]
         self.height = self.stdscr.getmaxyx()[0]
 
-        self.entities = []
+        self.entities: List[Entity] = []
 
         self.biome = BiomeManager(stdscr, self.width, self.height)
+
+        self._static_drawn = False
 
     def _calculate_entity_cap(self, frequency: float = 0.25):
         return self.width * self.height * frequency
@@ -31,22 +33,75 @@ class Overworld(metaclass=SingletonMeta):
             y = random.randint(0, self.height - 1)
             position = Position(x=x, y=y)
 
-            if position not in [entity.position for entity in self.entities]:
+            if not self.is_occupied(position):
                 occupied = False
 
         return position
+
+    def _get_spawn_rate(self, entity: Entity, biome: Biome):
+        for entity_biome_spawn_rate in ENTITY_BIOME_SPAWN_RATES:
+            if entity_biome_spawn_rate.entity_name == entity.__name__:
+                return getattr(entity_biome_spawn_rate.spawn_rates, biome.name, 0)
+        return 0
 
     def _draw_entity(self, entity: Entity, position: Position):
         biome = self.biome.get_biome_by_coords(position.x, position.y)
         biome_color = self.biome.get_biome_color(biome)
 
-        char = entity.get_representation(biome)
+        char = entity.representation
 
         try:
             self.stdscr.addstr(position.y, position.x, char, biome_color)
         except curses.error:
             pass
+
+    def draw(self):
+        """
+        Draw all the existing entities on the board.
+        """
+
+        if not self._static_drawn:
+            self.biome.draw()
+
+            static_entities = [entity for entity in self.entities if not entity.dynamic]
+            for entity in static_entities:
+                self._draw_entity(entity, entity.position)
+            self._static_drawn = True
+
+        dynamic_entities = [entity for entity in self.entities if entity.dynamic]
+
+        for entity in dynamic_entities:
+            self._draw_entity(entity, entity.position)
+
         self.stdscr.refresh()
+
+    def end(self):
+        """
+        End the overworld 😲.
+        """
+        self.stdscr.clear()
+
+    def is_occupied(self, position: Position):
+        return position in [entity.position for entity in self.entities]
+
+    def update(self):
+        """
+        Update all the entities in the overworld.
+        """
+        for entity in self.entities:
+            if not entity.dynamic:
+                continue
+
+            entity.update(self, self.biome)
+
+    def spawn_entities(self):
+        """
+        Spawn all the entities in the overworld.
+        """
+        for entity_class in ENTITIES:
+            cap = self._calculate_entity_cap(entity_class.frequency)
+            for _ in range(round(cap)):
+                self.spawn_entity(entity_class)
 
     def spawn_entity(self, entity: Entity, position: Position = None):
         """
@@ -62,43 +117,9 @@ class Overworld(metaclass=SingletonMeta):
         else:
             biome = self.biome.get_biome_by_coords(position.x, position.y)
 
-        spawn_rate = self.biome.ENTITY_BIOME_SPAWN_RATES.get(entity.__name__, {}).get(
-            biome, 0
-        )
+        spawn_rate = self._get_spawn_rate(entity, biome)
 
         if random.random() < spawn_rate:
-            entity = entity.create(position)
+            entity = entity.create(position, biome)
             self.entities.append(entity)
             bus.emit("entity:created", entity)
-
-    def spawn_entities(self):
-        """
-        Spawn all the entities in the overworld.
-        """
-        for entity_class in [Tree]:
-            cap = self._calculate_entity_cap(entity_class.frequency)
-            for _ in range(round(cap)):
-                self.spawn_entity(entity_class)
-
-    def draw(self):
-        """
-        Draw all the existing entities on the board.
-        """
-        self.stdscr.clear()
-
-        self.biome.draw()
-
-        for entity in self.entities:
-            self._draw_entity(entity, entity.position)
-
-    def end(self):
-        """
-        End the overworld 😲.
-        """
-        self.stdscr.clear()
-
-    def update(self):
-        """
-        Update all the entities in the overworld.
-        """
-        self.stdscr.clear()
