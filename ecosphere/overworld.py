@@ -11,11 +11,11 @@ from ecosphere.common.event_bus import bus
 
 
 class Overworld(metaclass=SingletonMeta):
-    def __init__(self, stdscr: Any):
+    def __init__(self, stdscr: Any, width: int, height: int):
         self.stdscr = stdscr
 
-        self.width = self.stdscr.getmaxyx()[1]
-        self.height = self.stdscr.getmaxyx()[0]
+        self.width = width
+        self.height = height
 
         self.entities: List[Entity] = []
 

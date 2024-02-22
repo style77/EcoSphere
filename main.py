@@ -23,6 +23,7 @@ def _init_colors():
     curses.init_pair(4, curses.COLOR_BLACK, COLOR_DARK_GREEN)
     curses.init_pair(5, curses.COLOR_BLACK, COLOR_GRAY)
     curses.init_pair(6, curses.COLOR_BLACK, curses.COLOR_WHITE)
+    curses.init_pair(7, curses.COLOR_WHITE, curses.COLOR_BLACK)
 
 
 def setup_stdscr():
@@ -44,7 +45,14 @@ if __name__ == "__main__":
     win = curses.newwin(0, 0)
     win.refresh()
 
+    width = win.getmaxyx()[1] - 1
+    height = win.getmaxyx()[0] - 1
+
     sysinfo = SystemInfo(win)
-    ov = Overworld(win)
+    if sysinfo:
+        width = sysinfo.width
+        height = sysinfo.height - 2
+
+    ov = Overworld(win, width, height)
     sys = System(ov, sysinfo)
     sys.run()
