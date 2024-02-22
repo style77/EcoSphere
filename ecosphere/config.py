@@ -57,4 +57,4 @@ ENTITY_BIOME_SPAWN_RATES = [
 
 ENTITIES = [Tree, Flower, Crab]
 
-HOUR_LENGTH = 1  # seconds
+MINUTE_LENGTH = 1  # seconds

@@ -1,9 +1,10 @@
 import time
 from ecosphere.common.singleton import SingletonMeta
 from ecosphere.common.systeminfo import SystemInfo
-from ecosphere.config import HOUR_LENGTH
+from ecosphere.config import MINUTE_LENGTH
 
 from ecosphere.overworld import Overworld
+from ecosphere.common.event_bus import bus
 
 
 class System(metaclass=SingletonMeta):
@@ -21,4 +22,5 @@ class System(metaclass=SingletonMeta):
             if self.system_info:
                 self.system_info.draw()
 
-            time.sleep(HOUR_LENGTH)
+            time.sleep(MINUTE_LENGTH)
+            bus.emit("minute:passed")
