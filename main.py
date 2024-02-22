@@ -39,8 +39,12 @@ def setup_stdscr():
 
 if __name__ == "__main__":
     stdscr = setup_stdscr()
+    stdscr.refresh()
 
-    sysinfo = SystemInfo(stdscr)
-    ov = Overworld(stdscr)
+    win = curses.newwin(0, 0)
+    win.refresh()
+
+    sysinfo = SystemInfo(win)
+    ov = Overworld(win)
     sys = System(ov, sysinfo)
     sys.run()
