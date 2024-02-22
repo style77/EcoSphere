@@ -1,4 +1,9 @@
-from abc import ABC, abstractmethod, abstractclassmethod
+from abc import (
+    ABC,
+    abstractmethod,
+    abstractclassmethod,
+    abstractstaticmethod,
+)
 from ecosphere.biome import Biome
 
 from ecosphere.utils import generate_id
@@ -10,22 +15,29 @@ class Entity(ABC):
     Abstract class representing an entity in the overworld.
     Can be either a plant, tree, animal, or any other entity.
     """
+    dynamic: bool = False
 
-    def __init__(self, position: Position):
+    def __init__(self, position: Position, representation: str):
         self.id = generate_id(self.__class__.__name__)
         self.position = position
+        self._representation = representation
 
     @abstractmethod
     def __repr__(self):
         return f"{self.__class__.__name__}(id={self.id}, position={self.position})"
 
-    @abstractmethod
-    def get_representation(self, biome: Biome):
-        raise NotImplementedError
-
     @classmethod
     @abstractclassmethod
-    def create(self):
+    def create(cls, position: Position, biome: Biome):
+        raise NotImplementedError
+
+    @property
+    def representation(self):
+        return self._representation
+
+    @staticmethod
+    @abstractstaticmethod
+    def get_representation(biome: Biome):
         raise NotImplementedError
 
     def move(self, x: int, y: int, overwrite: bool = False):
@@ -42,3 +54,7 @@ class Entity(ABC):
         else:
             self.position.x += x
             self.position.y += y
+
+    @abstractmethod
+    def update(self):
+        raise NotImplementedError
