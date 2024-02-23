@@ -180,9 +180,9 @@ class Animal(Entity):
         self.update_status()
         self.update_state()
 
-        print(
-            f"{self.__class__.__name__} at {self.position} is {self.state} and has {self.health} health, {self.hunger} hunger, {self.thirst} thirst, {self.energy} energy, and {self.mating_urge} mating urge."
-        )
+        # print(
+        #     f"{self.__class__.__name__} at {self.position} is {self.state} and has {self.health} health, {self.hunger} hunger, {self.thirst} thirst, {self.energy} energy, and {self.mating_urge} mating urge."
+        # )
         self.state.handle(self, overworld=overworld, biome_manager=biome_manager)
 
 
