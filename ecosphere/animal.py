@@ -3,6 +3,7 @@ import random
 from typing import TYPE_CHECKING, List
 from ecosphere.abc.entity import Entity
 from ecosphere.abc.position import Position
+from ecosphere.common.property import StatusProperty
 from ecosphere.biome import BiomeManager, Biome
 from ecosphere.common.event_bus import bus
 from ecosphere.state import (
@@ -13,6 +14,7 @@ from ecosphere.state import (
     SeekingWaterState,
     SleepingState,
 )
+from ecosphere.utils import clamp
 
 
 if TYPE_CHECKING:
@@ -40,19 +42,21 @@ class Animal(Entity):
     """
 
     def __init__(
-        self, position: Position, representation: str, perception_radius: int = 5
+        self,
+        position: Position,
+        representation: str,
+        properties: StatusProperty = StatusProperty(),
     ):
         super().__init__(position, representation, dynamic=True)
 
-        self.perception_radius = perception_radius
+        self.perception_radius = properties.perception_radius
+        self.properties = properties
 
         self.state = IdleState()
         self.health = get_rand_prop(80)
         self.hunger = get_rand_prop()
         self.thirst = get_rand_prop()
-        self.energy = get_rand_prop(
-            80
-        )
+        self.energy = get_rand_prop(80)
         self.mating_urge = 0
 
     def _calculate_position(
@@ -145,48 +149,39 @@ class Animal(Entity):
                 bus.emit("entity:dead", self)
                 return
 
-        # If energy is too low, animal needs to SLEEP
         if self.energy <= 10:
             self.state = SleepingState()
-        # If the animal is very hungry or thirsty, it should SEEK water or FORAGE for food
         elif self.thirst >= 60:
             self.state = SeekingWaterState()
         elif self.hunger >= 80:
             self.state = ForagingState()
-        # Consider mating urge for changing state to MATING
         elif self.mating_urge >= 80 and self.energy > 50:
             self.state = MatingState()
-        # If none of the above, and energy is not full, go to SLEEPING to restore energy
         elif self.energy < 50:
             self.state = SleepingState()
 
     def update_status(self):
-        # Increase hunger and thirst over time
-        self.hunger += 0.5
-        self.thirst += 0.5
+        # Update basic needs
+        self.hunger = clamp(self.hunger + self.properties.hunger_increase_rate, 0, 100)
+        self.thirst = clamp(self.thirst + self.properties.thirst_increase_rate, 0, 100)
+        self.energy = clamp(self.energy - self.properties.energy_decrease_rate, 0, 100)
 
-        # Decrease energy slightly over time
-        self.energy -= 0.5
-
-        # Cap hunger and thirst at 100
-        self.hunger = min(self.hunger, 100)
-        self.thirst = min(self.thirst, 100)
-
-        # Increase mating urge if conditions are favorable
+        # Update mating urge based on hunger, thirst, and energy
         if self.hunger <= 20 and self.thirst <= 20 and self.energy > 50:
-            self.mating_urge += 3
+            self.mating_urge += self.properties.mating_urge_increase_rate
         else:
-            self.mating_urge = max(
-                self.mating_urge - 1, 0
-            )  # Decrease if not ideal conditions
+            self.mating_urge -= self.properties.mating_urge_decrease_rate
+        self.mating_urge = clamp(self.mating_urge, 0, 100)
 
+        # Update health based on extreme hunger or thirst
         if self.hunger >= 90 or self.thirst >= 90:
-            self.health -= 5
+            self.health -= (
+                self.properties.health_decrease_rate
+                * self.properties.health_increase_multiplier
+            )
         elif self.hunger >= 80 or self.thirst >= 80:
-            self.health -= 2
-
-        self.mating_urge = min(self.mating_urge, 100)
-        self.health = max(self.health, 0)
+            self.health -= self.properties.health_decrease_rate
+        self.health = clamp(self.health, 0, 100)
 
     def update(self, overworld: "Overworld", biome_manager: BiomeManager):
         if isinstance(self.state, DeadState):
@@ -203,9 +198,10 @@ class Animal(Entity):
 
 class Crab(Animal):
     frequency = 0.01
+    _property = StatusProperty()
 
     def __init__(self, position: Position, representation: str = "🦀"):
-        super().__init__(position, representation)
+        super().__init__(position, representation, self._property)
 
     @staticmethod
     def get_representation(biome: Biome):
