@@ -5,7 +5,7 @@ from ecosphere.animal import Crab
 from ecosphere.plant import Flower, Tree
 
 Biome = Literal[
-    "OCEAN",
+    "WATER",
     "PLAINS",
     "FOREST",
     "DESERT",
@@ -16,7 +16,7 @@ Biome = Literal[
 
 @dataclass
 class BiomeSpawnRate:
-    OCEAN: float = 0.0
+    WATER: float = 0.0
     PLAINS: float = 0.0
     FOREST: float = 0.0
     DESERT: float = 0.0

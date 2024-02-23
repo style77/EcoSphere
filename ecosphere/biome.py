@@ -7,7 +7,7 @@ from noise import pnoise2
 
 
 class Biome(Enum):
-    OCEAN = auto()
+    WATER = auto()
     PLAINS = auto()
     FOREST = auto()
     DESERT = auto()
@@ -20,7 +20,7 @@ class BiomeColorPair(Enum):
     Biome with their curses color pair mapping.
     """
 
-    OCEAN = 1
+    WATER = 1
     DESERT = 2
     PLAINS = 3
     FOREST = 4
@@ -70,7 +70,7 @@ class BiomeManager:
                 )
 
     @lru_cache
-    def get_biome_color(self, biome: Biome) -> int:
+    def get_biome_color(self, biome: Biome):
         """
         Get the color pair for a given biome.
         """
@@ -81,7 +81,7 @@ class BiomeManager:
     def get_biome_by_coords(
         self, x: int, y: int
     ) -> Literal[
-        Biome.OCEAN,
+        Biome.WATER,
         Biome.PLAINS,
         Biome.FOREST,
         Biome.DESERT,
@@ -98,7 +98,7 @@ class BiomeManager:
     def get_biome(
         self, value: float
     ) -> Literal[
-        Biome.OCEAN,
+        Biome.WATER,
         Biome.PLAINS,
         Biome.FOREST,
         Biome.DESERT,
@@ -109,7 +109,7 @@ class BiomeManager:
         Get the biome for a given value.
         """
         if value < -0.4:
-            return Biome.OCEAN
+            return Biome.WATER
         elif value < -0.2:
             return Biome.DESERT
         elif value < 0.2:
