@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from typing import Literal
-from ecosphere.animals import Crab
+from ecosphere.animal import Crab
 
-from ecosphere.plants import Flower, Tree
+from ecosphere.plant import Flower, Tree
 
 Biome = Literal[
     "OCEAN",
