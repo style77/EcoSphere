@@ -74,13 +74,17 @@ class Overworld(metaclass=SingletonMeta):
         for entity in dynamic_entities:
             self._draw_entity(entity, entity.position)
 
-        self.stdscr.refresh()
-
     def end(self):
         """
         End the overworld 😲.
         """
         self.stdscr.clear()
+
+    def get_entity_at_position(self, position: Position):
+        for entity in self.entities:
+            if entity.position == position:
+                return entity
+        return None
 
     def get_nearby_entities(self, entity: Entity, perception_range: int):
         nearby_entities = []
