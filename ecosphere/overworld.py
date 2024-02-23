@@ -56,12 +56,12 @@ class Overworld(metaclass=SingletonMeta):
         except curses.error:
             pass
 
-    def draw(self):
+    def draw(self, force_static: bool = False):
         """
         Draw all the existing entities on the board.
         """
 
-        if not self._static_drawn:
+        if not self._static_drawn or force_static:
             self.biome.draw()
 
             static_entities = [entity for entity in self.entities if not entity.dynamic]
@@ -80,9 +80,10 @@ class Overworld(metaclass=SingletonMeta):
         """
         self.stdscr.clear()
 
-    def get_entity_at_position(self, position: Position):
-        for entity in self.entities:
-            if entity.position == position:
+    def get_entity_at_position(self, position: Position, dynamic_only: bool = True, range: int = 2):
+        entities = [entity for entity in self.entities if not dynamic_only or entity.dynamic]
+        for entity in entities:
+            if entity.position.is_within_range(position, range):
                 return entity
         return None
 
