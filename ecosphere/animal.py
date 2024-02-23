@@ -47,11 +47,13 @@ class Animal(Entity):
         self.perception_radius = perception_radius
 
         self.state = IdleState()
-        self.health = get_rand_prop()  # 0-100, 100 being healthy and 0 being dead
-        self.hunger = get_rand_prop()  # 0-100, 100 being full and 0 being starving
-        self.thirst = get_rand_prop()  # 0-100, 100 being full and 0 being dehydrated
-        self.energy = get_rand_prop()  # 0-100, 100 being full of energy and 0 exhausted
-        self.mating_urge = 0  # 0-100, 100 being ready to mate and 0 being not ready
+        self.health = get_rand_prop(80)
+        self.hunger = get_rand_prop()
+        self.thirst = get_rand_prop()
+        self.energy = get_rand_prop(
+            80
+        )
+        self.mating_urge = 0
 
     def _calculate_position(
         self, overworld: "Overworld", biome_manager: BiomeManager
@@ -109,7 +111,9 @@ class Animal(Entity):
             nearby_entities=nearby_entities,
         )
 
-    def move_towards(self, position: Position):
+    def move_towards(
+        self, position: Position, overworld: "Overworld", biome_manager: BiomeManager
+    ):
         dx = (
             1
             if position.x > self.position.x
@@ -124,7 +128,15 @@ class Animal(Entity):
             if position.y < self.position.y
             else 0
         )
-        self._move(dx, dy, overwrite=False)
+        _old_position = self.position
+        new_position = Position(self.position.x + dx, self.position.y + dy)
+
+        self._move(new_position.x, new_position.y, overwrite=True)
+
+        biome = biome_manager.get_biome_by_coords(self.position.x, self.position.y)
+        biome_color = biome_manager.get_biome_color(biome)
+
+        overworld.stdscr.addstr(_old_position.y, _old_position.x, "  ", biome_color)
 
     def update_state(self):
         if self.health <= 0:
@@ -136,11 +148,11 @@ class Animal(Entity):
         # If energy is too low, animal needs to SLEEP
         if self.energy <= 10:
             self.state = SleepingState()
-        # If the animal is very hungry or thirsty, it should FORAGE for food or water
+        # If the animal is very hungry or thirsty, it should SEEK water or FORAGE for food
+        elif self.thirst >= 60:
+            self.state = SeekingWaterState()
         elif self.hunger >= 80:
             self.state = ForagingState()
-        elif self.thirst >= 80:
-            self.state = SeekingWaterState()
         # Consider mating urge for changing state to MATING
         elif self.mating_urge >= 80 and self.energy > 50:
             self.state = MatingState()
