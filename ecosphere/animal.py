@@ -10,6 +10,7 @@ from ecosphere.state import (
     ForagingState,
     IdleState,
     MatingState,
+    SeekingWaterState,
     SleepingState,
 )
 
@@ -136,8 +137,10 @@ class Animal(Entity):
         if self.energy <= 10:
             self.state = SleepingState()
         # If the animal is very hungry or thirsty, it should FORAGE for food or water
-        elif self.hunger >= 80 or self.thirst >= 80:
+        elif self.hunger >= 80:
             self.state = ForagingState()
+        elif self.thirst >= 80:
+            self.state = SeekingWaterState()
         # Consider mating urge for changing state to MATING
         elif self.mating_urge >= 80 and self.energy > 50:
             self.state = MatingState()
