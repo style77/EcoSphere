@@ -4,7 +4,6 @@ from collections import Counter
 from typing import Any, Counter as CounterType
 from ecosphere.abc.entity import Entity
 from ecosphere.common.singleton import SingletonMeta
-from ecosphere.common.event_bus import bus
 
 
 class SystemInfo(metaclass=SingletonMeta):
@@ -14,13 +13,12 @@ class SystemInfo(metaclass=SingletonMeta):
         self.width: int = self.stdscr.getmaxyx()[1]
         self.height: int = self.stdscr.getmaxyx()[0]
 
-        self.entities: CounterType[Entity] = Counter()  # Class determined count of entities
+        self.entities: CounterType[Entity] = Counter()
         self._dead_entities: CounterType[Entity] = Counter()
 
         self._time = 0  # Minutes counter
 
     @staticmethod
-    @bus.listener("entity:created")
     def entity_created(entity: Entity):
         """
         Add entity to the system info.
@@ -28,9 +26,7 @@ class SystemInfo(metaclass=SingletonMeta):
         Attributes:
             entity: the entity to add to the system info counter
         """
-        sysinfo = (
-            SystemInfo()
-        )  # Singleton, that might not be the best approach, but it works for now
+        sysinfo = SystemInfo()
 
         entity_name = entity.__class__.__name__
 
@@ -40,7 +36,6 @@ class SystemInfo(metaclass=SingletonMeta):
             sysinfo.entities[entity_name] += 1
 
     @staticmethod
-    @bus.listener("entity:dead")
     def entity_dead(entity: Entity):
         """
         Remove entity from the system info.
@@ -58,7 +53,6 @@ class SystemInfo(metaclass=SingletonMeta):
             sysinfo._dead_entities[entity_name] += 1
 
     @staticmethod
-    @bus.listener("minute:passed")
     def minute_passed():
         """
         Increment the day counter.
@@ -81,9 +75,7 @@ class SystemInfo(metaclass=SingletonMeta):
 
                 message = f"{entity} ({alive} alive, {self._dead_entities.get(entity, 0)} dead)"
 
-                _temp_vals.append(
-                    message
-                )
+                _temp_vals.append(message)
 
             overworld_info += "Entities: " + ", ".join(_temp_vals)
 

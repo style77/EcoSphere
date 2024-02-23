@@ -3,6 +3,7 @@ from dataclasses import dataclass
 import sys
 from typing import List
 from ecosphere.common.systeminfo import SystemInfo
+from ecosphere.common.event_bus import bus
 
 from ecosphere.overworld import Overworld
 from ecosphere.system import System
@@ -60,6 +61,12 @@ def _get_args(argv: List[str]) -> SystemArgs:
     return SystemArgs(debug, sysinfo)
 
 
+def register_listeners(sysinfo: SystemInfo):
+    bus.listener("minute:passed")(sysinfo.minute_passed)
+    bus.listener("entity:dead")(sysinfo.entity_dead)
+    bus.listener("entity:created")(sysinfo.entity_created)
+
+
 if __name__ == "__main__":
     stdscr = setup_stdscr()
     stdscr.refresh()
@@ -67,16 +74,19 @@ if __name__ == "__main__":
     win = curses.newwin(0, 0)
     win.refresh()
 
-    width = win.getmaxyx()[1] - 1
-    height = win.getmaxyx()[0] - 1
+    width = win.getmaxyx()[1]
+    height = win.getmaxyx()[0]
 
     args = _get_args(sys.argv)
 
-    sysinfo = SystemInfo(win) if args.sysinfo else None
+    sysinfo = None
+    if args.sysinfo:
+        sysinfo = SystemInfo(win)
+        register_listeners(sysinfo)
 
-    if sysinfo:
-        width = sysinfo.width
-        height = sysinfo.height - 2
+    if sysinfo is not None:
+        width = width
+        height = height - 2
 
     ov = Overworld(win, width, height)
     sys = System(ov, sysinfo)
