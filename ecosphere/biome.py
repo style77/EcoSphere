@@ -1,7 +1,8 @@
 import curses
 from enum import Enum, auto
 from functools import lru_cache
-from typing import List, Any, Literal, Dict
+import random
+from typing import List, Any, Literal
 from noise import pnoise2
 
 
@@ -33,6 +34,10 @@ class BiomeManager:
         self.width = width
         self.height = height
 
+        self.seed = random.randint(0, 100000)
+        self.offset_x = random.randint(0, 100000)
+        self.offset_y = random.randint(0, 100000)
+
         self.map: List[List[float]] = self._generate_biome_map()
 
     def _generate_biome_map(self, scale: int = 0.05):
@@ -40,7 +45,10 @@ class BiomeManager:
         Generate a biome map using Perlin noise.
         """
         biome_map = [
-            [pnoise2(x * scale, y * scale) for x in range(self.width)]
+            [
+                pnoise2((x + self.offset_x) * scale, (y + self.offset_y) * scale)
+                for x in range(self.width)
+            ]
             for y in range(self.height)
         ]
         return biome_map
