@@ -127,24 +127,23 @@ class Animal(Entity):
 
     def update_state(self):
         if self.health <= 0:
-            if self.state != DeadState():
+            if not isinstance(self.state, DeadState):
                 self.state = DeadState()
                 bus.emit("entity:dead", self)
                 return
 
-        elif self.state != DeadState():
-            # If energy is too low, animal needs to sleep
-            if self.energy <= 10:
-                self.state = SleepingState()
-            # If the animal is very hungry or thirsty, it should forage for food or water
-            elif self.hunger >= 80 or self.thirst >= 80:
-                self.state = ForagingState()
-            # Consider mating urge for changing state to MATING
-            elif self.mating_urge >= 80 and self.energy > 50:
-                self.state = MatingState()
-            # If none of the above, and energy is not full, go to SLEEPING to restore energy
-            elif self.energy < 50:
-                self.state = SleepingState()
+        # If energy is too low, animal needs to SLEEP
+        if self.energy <= 10:
+            self.state = SleepingState()
+        # If the animal is very hungry or thirsty, it should FORAGE for food or water
+        elif self.hunger >= 80 or self.thirst >= 80:
+            self.state = ForagingState()
+        # Consider mating urge for changing state to MATING
+        elif self.mating_urge >= 80 and self.energy > 50:
+            self.state = MatingState()
+        # If none of the above, and energy is not full, go to SLEEPING to restore energy
+        elif self.energy < 50:
+            self.state = SleepingState()
 
     def update_status(self):
         # Increase hunger and thirst over time
@@ -175,14 +174,11 @@ class Animal(Entity):
         self.health = max(self.health, 0)
 
     def update(self, overworld: "Overworld", biome_manager: BiomeManager):
-        if self.state == DeadState():
+        if isinstance(self.state, DeadState):
             return
 
         self.update_status()
         self.update_state()
-
-        if self.state == DeadState():  # boilerplate, but necessary
-            return
 
         print(
             f"{self.__class__.__name__} at {self.position} is {self.state} and has {self.health} health, {self.hunger} hunger, {self.thirst} thirst, {self.energy} energy, and {self.mating_urge} mating urge."
