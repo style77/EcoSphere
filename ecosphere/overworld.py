@@ -81,8 +81,21 @@ class Overworld(metaclass=SingletonMeta):
         """
         self.stdscr.clear()
 
+    def get_nearby_entities(self, entity: Entity, perception_range: int):
+        nearby_entities = []
+        for other_entity in self.entities:
+            if self.is_within_range(entity.position, other_entity.position, perception_range):
+                nearby_entities.append(entity)
+        return nearby_entities
+
     def is_occupied(self, position: Position):
         return position in [entity.position for entity in self.entities]
+
+    def is_within_range(self, position: Position, other_position: Position, range: int):
+        return (
+            abs(position.x - other_position.x) <= range
+            and abs(position.y - other_position.y) <= range
+        )
 
     def update(self):
         """
