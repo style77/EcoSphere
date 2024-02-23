@@ -1,3 +1,4 @@
+import asyncio
 import curses
 from dataclasses import dataclass
 import sys
@@ -32,6 +33,7 @@ def _init_colors():
 
 def setup_stdscr():
     stdscr = curses.initscr()
+
     curses.noecho()
     curses.cbreak()
     stdscr.keypad(True)
@@ -67,12 +69,8 @@ def register_listeners(sysinfo: SystemInfo):
     bus.listener("entity:created")(sysinfo.entity_created)
 
 
-if __name__ == "__main__":
-    stdscr = setup_stdscr()
-    stdscr.refresh()
-
-    win = curses.newwin(0, 0)
-    win.refresh()
+def main(stdscr) -> None:
+    win = stdscr
 
     width = win.getmaxyx()[1]
     height = win.getmaxyx()[0]
@@ -89,5 +87,11 @@ if __name__ == "__main__":
         height = height - 2
 
     ov = Overworld(win, width, height)
-    sys = System(ov, sysinfo)
-    sys.run()
+    system = System(ov, sysinfo)
+
+    return asyncio.run(system.run())
+
+
+if __name__ == "__main__":
+    stdscr = setup_stdscr()
+    main(stdscr)
