@@ -1,4 +1,7 @@
 import curses
+from dataclasses import dataclass
+import sys
+from typing import List
 from ecosphere.common.systeminfo import SystemInfo
 
 from ecosphere.overworld import Overworld
@@ -38,6 +41,25 @@ def setup_stdscr():
     return stdscr
 
 
+@dataclass
+class SystemArgs:
+    debug: bool = False
+    sysinfo: bool = False
+
+
+def _get_args(argv: List[str]) -> SystemArgs:
+    debug = False
+    sysinfo = False
+
+    for arg in argv:
+        if arg == "--debug" or arg == "-d":
+            debug = True
+        if arg == "--sysinfo" or arg == "-s":
+            sysinfo = True
+
+    return SystemArgs(debug, sysinfo)
+
+
 if __name__ == "__main__":
     stdscr = setup_stdscr()
     stdscr.refresh()
@@ -48,7 +70,10 @@ if __name__ == "__main__":
     width = win.getmaxyx()[1] - 1
     height = win.getmaxyx()[0] - 1
 
-    sysinfo = SystemInfo(win)
+    args = _get_args(sys.argv)
+
+    sysinfo = SystemInfo(win) if args.sysinfo else None
+
     if sysinfo:
         width = sysinfo.width
         height = sysinfo.height - 2
