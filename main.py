@@ -3,7 +3,7 @@ import curses
 from dataclasses import dataclass
 import sys
 from typing import List
-from ecosphere.common.systeminfo import SystemInfo
+from ecosphere.systeminfo import SystemInfo
 from ecosphere.common.event_bus import bus
 
 from ecosphere.overworld import Overworld
@@ -37,6 +37,7 @@ def setup_stdscr():
     curses.noecho()
     curses.cbreak()
     stdscr.keypad(True)
+    curses.mousemask(1)
     curses.curs_set(0)
 
     _init_colors()
