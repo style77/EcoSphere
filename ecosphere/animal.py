@@ -92,7 +92,7 @@ class Animal(Entity):
     def perceive_environment(
         self, overworld: "Overworld", biome_manager: BiomeManager
     ) -> PerceivedEnvironment:
-        nearby_entities = self.get_nearby_entities(overworld, self.perception_radius)
+        nearby_entities = overworld.get_nearby_entities(self, self.perception_radius)
 
         potential_mates = []
 
@@ -108,19 +108,6 @@ class Animal(Entity):
             current_biome=current_biome,
             potential_mates=potential_mates,
             nearby_entities=nearby_entities,
-        )
-
-    def get_nearby_entities(self, overworld: "Overworld", perception_range: int):
-        nearby_entities = []
-        for entity in overworld.entities:
-            if self.is_within_range(entity.position, perception_range):
-                nearby_entities.append(entity)
-        return nearby_entities
-
-    def is_within_range(self, position: Position, range: int):
-        return (
-            abs(self.position.x - position.x) <= range
-            and abs(self.position.y - position.y) <= range
         )
 
     def is_next_to(self, position: Position) -> bool:
