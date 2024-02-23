@@ -5,6 +5,7 @@ from typing import Any, List
 from ecosphere.abc.entity import Entity
 from ecosphere.abc.position import Position
 from ecosphere.biome import Biome, BiomeManager
+from ecosphere.common.onetime_caller import OneTimeCaller
 from ecosphere.common.singleton import SingletonMeta
 from ecosphere.config import ENTITIES, ENTITY_BIOME_SPAWN_RATES
 from ecosphere.common.event_bus import bus
@@ -84,18 +85,12 @@ class Overworld(metaclass=SingletonMeta):
     def get_nearby_entities(self, entity: Entity, perception_range: int):
         nearby_entities = []
         for other_entity in self.entities:
-            if self.is_within_range(entity.position, other_entity.position, perception_range):
+            if entity.position.is_within_range(other_entity.position, perception_range):
                 nearby_entities.append(entity)
         return nearby_entities
 
     def is_occupied(self, position: Position):
         return position in [entity.position for entity in self.entities]
-
-    def is_within_range(self, position: Position, other_position: Position, range: int):
-        return (
-            abs(position.x - other_position.x) <= range
-            and abs(position.y - other_position.y) <= range
-        )
 
     def update(self):
         """
@@ -107,14 +102,18 @@ class Overworld(metaclass=SingletonMeta):
 
             entity.update(self, self.biome)
 
-    def spawn_entities(self):
-        """
-        Spawn all the entities in the overworld.
-        """
+    def _spawn_entities(self):
         for entity_class in ENTITIES:
             cap = self._calculate_entity_cap(entity_class.frequency)
             for _ in range(round(cap)):
                 self.spawn_entity(entity_class)
+
+    def spawn_entities(self):
+        """
+        Spawn all the entities in the overworld.
+        """
+        oc = OneTimeCaller(self._spawn_entities)
+        oc()
 
     def spawn_entity(self, entity: Entity, position: Position = None):
         """
@@ -135,4 +134,5 @@ class Overworld(metaclass=SingletonMeta):
         if random.random() < spawn_rate:
             entity = entity.create(position, biome)
             self.entities.append(entity)
+
             bus.emit("entity:created", entity)
