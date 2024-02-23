@@ -8,8 +8,6 @@ from ecosphere.biome import Biome
 from ecosphere.utils import generate_id
 from ecosphere.abc.position import Position
 
-from typing import NoReturn
-
 
 class Entity(ABC):
     """
@@ -45,7 +43,7 @@ class Entity(ABC):
     def update(self):
         raise NotImplementedError
 
-    def move(self, x: int, y: int, overwrite: bool = False) -> NoReturn:
+    def move(self, x: int, y: int, overwrite: bool = False) -> None:
         """
         Move the entity by the specified amount. If overwrite is True, the entity's position is set to the new position.
 
