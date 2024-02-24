@@ -218,9 +218,21 @@ class Crab(Animal):
     frequency = 0.01
     _property = StatusProperty()
 
-    def __init__(self, position: Position, representation: str = "🦀"):
+    def __init__(self, position: Position, representation: str):
         super().__init__(position, representation, self._property)
 
     @staticmethod
     def get_representation(biome: Biome):
         return "🦀"
+
+
+class Fox(Animal):
+    frequency = 0.01
+    _property = StatusProperty()
+
+    def __init__(self, position: Position, representation: str):
+        super().__init__(position, representation, self._property)
+
+    @staticmethod
+    def get_representation(biome: Biome):
+        return "🦊"

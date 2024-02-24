@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Literal
 
-from ecosphere.entities.animal import Crab
+from ecosphere.entities.animal import Crab, Fox
 from ecosphere.entities.plant import Flower, Tree
 
 Biome = Literal[
@@ -52,9 +52,15 @@ ENTITY_BIOME_SPAWN_RATES = [
             DESERT=0.4,
         ),
     ),
+    EntityBiomeSpawnRates(
+        entity_name="Fox",
+        spawn_rates=BiomeSpawnRate(
+            FOREST=0.6,
+        ),
+    ),
 ]
 
 
-ENTITIES = [Tree, Flower, Crab]
+ENTITIES = [Tree, Flower, Crab, Fox]
 
 MINUTE_LENGTH = 1  # seconds
