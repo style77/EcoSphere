@@ -1,21 +1,20 @@
 import asyncio
 import curses
-from ecosphere.abc.position import Position
-from ecosphere.common.singleton import SingletonMeta
-from ecosphere.systeminfo import SystemInfo
-from ecosphere.config import MINUTE_LENGTH
-
-from ecosphere.overworld import Overworld
-from ecosphere.common.event_bus import bus
-
 from typing import TYPE_CHECKING
+
+from ecosphere.abc.position import Position
+from ecosphere.common.event_bus import bus
+from ecosphere.common.singleton import SingletonMeta
+from ecosphere.config import MINUTE_LENGTH
+from ecosphere.world.overworld import Overworld
 
 if TYPE_CHECKING:
     from ecosphere.abc.entity import Entity
+    from ecosphere.system import SystemInfo
 
 
 class System(metaclass=SingletonMeta):
-    def __init__(self, overworld: Overworld, system_info: SystemInfo = None):
+    def __init__(self, overworld: Overworld, system_info: "SystemInfo" = None):
         self.overworld = overworld
         self.system_info = system_info
 
@@ -62,7 +61,9 @@ class System(metaclass=SingletonMeta):
             if entity:
                 if self.info_win:
                     self.info_win.clear()
-                self.info_win = await self.show_entity_info(self.overworld.stdscr, entity)
+                self.info_win = await self.show_entity_info(
+                    self.overworld.stdscr, entity
+                )
                 self.info_win.refresh()
             else:
                 if self.info_win:

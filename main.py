@@ -1,13 +1,12 @@
 import asyncio
 import curses
-from dataclasses import dataclass
 import sys
+from dataclasses import dataclass
 from typing import List
-from ecosphere.systeminfo import SystemInfo
-from ecosphere.common.event_bus import bus
 
-from ecosphere.overworld import Overworld
-from ecosphere.system import System
+from ecosphere.common.event_bus import bus
+from ecosphere.system import System, SystemInfo
+from ecosphere.world.overworld import Overworld
 
 
 def _init_colors():

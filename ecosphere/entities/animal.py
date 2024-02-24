@@ -1,12 +1,13 @@
-from dataclasses import dataclass
 import random
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, List
+
 from ecosphere.abc.entity import Entity
 from ecosphere.abc.position import Position
-from ecosphere.common.property import StatusProperty
-from ecosphere.biome import BiomeManager, Biome
-from ecosphere.common.event_bus import bus
-from ecosphere.state import (
+
+from ecosphere.common import EnvironmentContext, bus, StatusProperty
+
+from ecosphere.states import (
     DeadState,
     ForagingState,
     IdleState,
@@ -14,11 +15,12 @@ from ecosphere.state import (
     SeekingWaterState,
     SleepingState,
 )
-from ecosphere.utils import clamp
 
+from ecosphere.utils import clamp
+from ecosphere.world.biome import Biome, BiomeManager
 
 if TYPE_CHECKING:
-    from ecosphere.overworld import Overworld
+    from ecosphere.world.overworld import Overworld
 
 
 @dataclass
@@ -193,7 +195,7 @@ class Animal(Entity):
         # print(
         #     f"{self.__class__.__name__} at {self.position} is {self.state} and has {self.health} health, {self.hunger} hunger, {self.thirst} thirst, {self.energy} energy, and {self.mating_urge} mating urge."
         # )
-        self.state.handle(self, overworld=overworld, biome_manager=biome_manager)
+        self.state.handle(self, EnvironmentContext(overworld, biome_manager))
 
 
 class Crab(Animal):

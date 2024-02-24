@@ -1,7 +1,10 @@
 import curses
-import psutil
 from collections import Counter
-from typing import Any, Counter as CounterType
+from typing import Any
+from typing import Counter as CounterType
+
+import psutil
+
 from ecosphere.abc.entity import Entity
 from ecosphere.common.singleton import SingletonMeta
 

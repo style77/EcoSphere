@@ -1,8 +1,9 @@
 import curses
+import random
 from enum import Enum, auto
 from functools import lru_cache
-import random
-from typing import List, Any, Literal
+from typing import Any, List, Literal
+
 from noise import pnoise2
 
 

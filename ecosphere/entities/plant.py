@@ -1,14 +1,12 @@
 import random
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from ecosphere.abc.entity import Entity
 from ecosphere.abc.position import Position
-from ecosphere.biome import Biome, BiomeManager
-
-from typing import TYPE_CHECKING
+from ecosphere.world.biome import Biome, BiomeManager
 
 if TYPE_CHECKING:
-    from ecosphere.overworld import Overworld
+    from ecosphere.world.overworld import Overworld
 
 
 class Plant(Entity):
@@ -19,6 +17,7 @@ class Plant(Entity):
         position: Position object representing the entity's location in the overworld
         representation: str representing the plant's representation in the overworld
     """
+
     def __init__(self, position: Position, representation: str):
         super().__init__(position, representation, dynamic=False)
 

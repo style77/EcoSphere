@@ -4,11 +4,11 @@ from typing import Any, List
 
 from ecosphere.abc.entity import Entity
 from ecosphere.abc.position import Position
-from ecosphere.biome import Biome, BiomeManager
+from ecosphere.common.event_bus import bus
 from ecosphere.common.onetime_caller import OneTimeCaller
 from ecosphere.common.singleton import SingletonMeta
 from ecosphere.config import ENTITIES, ENTITY_BIOME_SPAWN_RATES
-from ecosphere.common.event_bus import bus
+from ecosphere.world.biome import Biome, BiomeManager
 
 
 class Overworld(metaclass=SingletonMeta):
@@ -80,8 +80,12 @@ class Overworld(metaclass=SingletonMeta):
         """
         self.stdscr.clear()
 
-    def get_entity_at_position(self, position: Position, dynamic_only: bool = True, range: int = 2):
-        entities = [entity for entity in self.entities if not dynamic_only or entity.dynamic]
+    def get_entity_at_position(
+        self, position: Position, dynamic_only: bool = True, range: int = 2
+    ):
+        entities = [
+            entity for entity in self.entities if not dynamic_only or entity.dynamic
+        ]
         for entity in entities:
             if entity.position.is_within_range(position, range):
                 return entity

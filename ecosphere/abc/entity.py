@@ -1,12 +1,8 @@
-from abc import (
-    ABC,
-    abstractmethod,
-    abstractstaticmethod,
-)
-from ecosphere.biome import Biome
+from abc import ABC, abstractmethod, abstractstaticmethod
 
-from ecosphere.utils import generate_id
 from ecosphere.abc.position import Position
+from ecosphere.utils import generate_id
+from ecosphere.world.biome import Biome
 
 
 class Entity(ABC):
@@ -14,6 +10,7 @@ class Entity(ABC):
     Abstract class representing an entity in the overworld.
     Can be either a plant, tree, animal, or any other entity.
     """
+
     def __init__(self, position: Position, representation: str, dynamic: bool):
         self.id = generate_id(self.__class__.__name__)
         self.position = position
