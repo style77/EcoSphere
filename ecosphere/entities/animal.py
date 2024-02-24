@@ -1,3 +1,4 @@
+import logging
 import random
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, List
@@ -147,19 +148,25 @@ class Animal(Entity):
     def update_state(self):
         if self.health <= 0:
             if not isinstance(self.state, DeadState):
+                logging.debug(f"{self.id} has died.")
                 self.state = DeadState()
                 bus.emit("entity:dead", self)
                 return
 
         if self.energy <= 10:
+            logging.debug(f"{self.id} is very tired and needs to rest.")
             self.state = SleepingState()
         elif self.thirst >= 60:
+            logging.debug(f"{self.id} is thirsty and needs water.")
             self.state = SeekingWaterState()
         elif self.hunger >= 80:
+            logging.debug(f"{self.id} is hungry and needs to eat.")
             self.state = ForagingState()
         elif self.mating_urge >= 80 and self.energy > 50:
+            logging.debug(f"{self.id} is in mood and needs to mate.")
             self.state = MatingState()
         elif self.energy < 50:
+            logging.debug(f"{self.id} is tired and needs to rest.")
             self.state = SleepingState()
 
     def update_status(self):
@@ -178,8 +185,7 @@ class Animal(Entity):
         # Update health based on extreme hunger or thirst
         if self.hunger >= 90 or self.thirst >= 90:
             self.health -= (
-                self.properties.health_decrease_rate
-                * self.properties.health_multiplier
+                self.properties.health_decrease_rate * self.properties.health_multiplier
             )
         elif self.hunger >= 80 or self.thirst >= 80:
             self.health -= self.properties.health_decrease_rate
@@ -195,9 +201,9 @@ class Animal(Entity):
         self.update_status()
         self.update_state()
 
-        # print(
-        #     f"{self.__class__.__name__} at {self.position} is {self.state} and has {self.health} health, {self.hunger} hunger, {self.thirst} thirst, {self.energy} energy, and {self.mating_urge} mating urge."
-        # )
+        logging.debug(
+            f"{self.id} at {self.position} is {self.state} and has {self.health} health, {self.hunger} hunger, {self.thirst} thirst, {self.energy} energy, and {self.mating_urge} mating urge."
+        )
         self.state.handle(self, EnvironmentContext(overworld, biome_manager))
 
 

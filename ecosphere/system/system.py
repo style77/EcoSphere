@@ -1,5 +1,6 @@
 import asyncio
 import curses
+import logging
 from typing import TYPE_CHECKING
 
 from ecosphere.abc.position import Position
@@ -111,4 +112,4 @@ class System(metaclass=SingletonMeta):
             self.overworld.stdscr.refresh()
             curses.endwin()
             bus.emit("system:shutdown")
-            print("System shutting down")
+            logging.info("System shutting down")

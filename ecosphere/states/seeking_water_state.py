@@ -1,3 +1,4 @@
+import logging
 import random
 from typing import TYPE_CHECKING
 
@@ -13,30 +14,37 @@ if TYPE_CHECKING:
 
 
 class SeekingWaterState(AnimalState):
+    def __init__(self):
+        self.__fallback_direction = None
+
     def handle(self, animal: "Animal", environment_context: "EnvironmentContext"):
         if animal.thirst <= 0:
+            logging.debug(f"{animal} is no longer thirsty.")
             animal.state = IdleState()
             return
 
-        nearest_water = self.find_nearest_water_source(
-            animal, environment_context
-        )
+        nearest_water = self.find_nearest_water_source(animal, environment_context)
 
         if nearest_water:
-            print(
-                f"There is water nearby ({nearest_water}). Moving from {animal.position} towards it (thirst: {animal.thirst})."
+            logging.debug(
+                f"{animal} found that there is water nearby ({nearest_water}). Moving from {animal.position} towards it (thirst: {animal.thirst})."
             )
             if animal.position.is_next_to(nearest_water):
+                logging.debug(f"{animal} is drinking water.")
                 animal.thirst -= animal.properties.thirst_decrease_rate
                 if animal.thirst < 20:
                     animal.state = IdleState()
             else:
+                logging.debug(f"{animal} is moving towards water.")
                 animal.move_towards(
                     nearest_water,
                     environment_context.overworld,
                     environment_context.biome_manager,
                 )
         else:
+            logging.debug(
+                f"{animal} couldn't find any water nearby. Moving in a random direction."
+            )
             fallback_direction = self.decide_fallback_direction(
                 animal, environment_context.overworld
             )
@@ -87,14 +95,27 @@ class SeekingWaterState(AnimalState):
             return nearest_water_pos
 
     def decide_fallback_direction(self, animal: "Animal", overworld: "Overworld"):
-        directions = [Position(1, 0), Position(-1, 0), Position(0, 1), Position(0, -1)]
-        fallback_direction = random.choice(directions)
+        if self.__fallback_direction is None:
+            directions = [
+                Position(1, 0),
+                Position(-1, 0),
+                Position(0, 1),
+                Position(0, -1),
+            ]
+            self.__fallback_direction = random.choice(directions)
 
         new_x = max(
-            0, min(animal.position.x + fallback_direction.x, overworld.width - 1)
+            0, min(animal.position.x + self.__fallback_direction.x, overworld.width - 1)
         )
         new_y = max(
-            0, min(animal.position.y + fallback_direction.y, overworld.height - 1)
+            0,
+            min(animal.position.y + self.__fallback_direction.y, overworld.height - 1),
         )
+
+        # If we hit the edge of the map, change direction
+        if new_y == overworld.height - 1 or new_y == 0:
+            self.__fallback_direction.y *= -1
+        if new_x == overworld.width - 1 or new_x == 0:
+            self.__fallback_direction.x *= -1
 
         return Position(new_x, new_y)

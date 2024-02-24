@@ -48,23 +48,24 @@ def setup_stdscr():
 
 @dataclass
 class SystemArgs:
-    logging: Literal["debug", "info", "warning", "error", "critical"] = "info"
+    loglevel: Literal["debug", "info", "warning", "error", "critical"] = "info"
     sysinfo: bool = False
 
 
 def _get_args(argv: List[str]) -> SystemArgs:
     sysinfo = False
+    loglevel = "info"
 
     for arg in argv:
         if arg == "--sysinfo" or arg == "-s":
             sysinfo = True
 
         if arg == "--info" or arg == "-i":
-            logging = "info"
+            loglevel = "info"
         if arg == "--debug" or arg == "-d":
-            logging = "debug"
+            loglevel = "debug"
 
-    return SystemArgs(logging, sysinfo)
+    return SystemArgs(loglevel, sysinfo)
 
 
 def register_listeners(sysinfo: SystemInfo):
@@ -86,7 +87,7 @@ def main(stdscr) -> None:
         sysinfo = SystemInfo(win)
         register_listeners(sysinfo)
 
-    set_logging_level(args.logging)
+    set_logging_level(args.loglevel)
 
     if sysinfo is not None:
         width = width

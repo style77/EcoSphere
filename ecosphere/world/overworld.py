@@ -1,4 +1,5 @@
 import curses
+import logging
 import random
 from typing import Any, List
 
@@ -60,7 +61,7 @@ class Overworld(metaclass=SingletonMeta):
         """
         Draw all the existing entities on the board.
         """
-
+        logging.debug("Drawing entities in the overworld.")
         if not self._static_drawn or force_static:
             self.biome.draw()
 
@@ -73,11 +74,13 @@ class Overworld(metaclass=SingletonMeta):
 
         for entity in dynamic_entities:
             self._draw_entity(entity, entity.position)
+        logging.debug("Entities drawn.")
 
     def end(self):
         """
         End the overworld 😲.
         """
+        logging.debug("Ending the overworld. Clearing screen.")
         self.stdscr.clear()
 
     def get_entity_at_position(
@@ -105,11 +108,13 @@ class Overworld(metaclass=SingletonMeta):
         """
         Update all the entities in the overworld.
         """
+        logging.debug("Updating entities in the overworld.")
         for entity in self.entities:
             if not entity.dynamic:
                 continue
 
             entity.update(self, self.biome)
+        logging.info("Entities updated.")
 
     def _spawn_entities(self):
         for entity_class in ENTITIES:
@@ -121,8 +126,10 @@ class Overworld(metaclass=SingletonMeta):
         """
         Spawn all the entities in the overworld.
         """
+        logging.debug("Spawning entities in the overworld.")
         oc = OneTimeCaller(self._spawn_entities)
         oc()
+        logging.info("Entities spawned.")
 
     def spawn_entity(self, entity: Entity, position: Position = None):
         """
@@ -145,3 +152,4 @@ class Overworld(metaclass=SingletonMeta):
             self.entities.append(entity)
 
             bus.emit("entity:created", entity)
+            logging.debug(f"{entity} spawned at {position}.")
