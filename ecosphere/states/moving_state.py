@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from ecosphere.state import AnimalState
+from ecosphere.states.state import AnimalState
 
 if TYPE_CHECKING:
     from ecosphere.common.environment_context import EnvironmentContext

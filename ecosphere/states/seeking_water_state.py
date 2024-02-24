@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 from ecosphere.abc.position import Position
 from ecosphere.world.biome import Biome
-from ecosphere.state import AnimalState
+from ecosphere.states.state import AnimalState
 from ecosphere.states.idle_state import IdleState
 
 if TYPE_CHECKING:

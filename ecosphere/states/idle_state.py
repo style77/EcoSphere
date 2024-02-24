@@ -1,7 +1,7 @@
 import random
 from typing import TYPE_CHECKING
 
-from ecosphere.state import AnimalState
+from ecosphere.states.state import AnimalState
 from ecosphere.states.moving_state import MovingState
 from ecosphere.states.sleeping_state import SleepingState
 

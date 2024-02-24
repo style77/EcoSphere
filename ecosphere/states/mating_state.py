@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 from ecosphere.abc.position import Position
-from ecosphere.state import AnimalState
+from ecosphere.states.state import AnimalState
 from ecosphere.states.idle_state import IdleState
 from ecosphere.states.moving_state import MovingState
 
