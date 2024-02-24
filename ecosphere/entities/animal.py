@@ -179,7 +179,7 @@ class Animal(Entity):
         if self.hunger >= 90 or self.thirst >= 90:
             self.health -= (
                 self.properties.health_decrease_rate
-                * self.properties.health_increase_multiplier
+                * self.properties.health_multiplier
             )
         elif self.hunger >= 80 or self.thirst >= 80:
             self.health -= self.properties.health_decrease_rate
