@@ -1,10 +1,12 @@
 import asyncio
 import curses
+import logging
 import sys
 from dataclasses import dataclass
-from typing import List
+from typing import List, Literal
 
 from ecosphere.common.event_bus import bus
+from ecosphere.logging import set_logging_level
 from ecosphere.system import System, SystemInfo
 from ecosphere.world.overworld import Overworld
 
@@ -46,21 +48,23 @@ def setup_stdscr():
 
 @dataclass
 class SystemArgs:
-    debug: bool = False
+    logging: Literal["debug", "info", "warning", "error", "critical"] = "info"
     sysinfo: bool = False
 
 
 def _get_args(argv: List[str]) -> SystemArgs:
-    debug = False
     sysinfo = False
 
     for arg in argv:
-        if arg == "--debug" or arg == "-d":
-            debug = True
         if arg == "--sysinfo" or arg == "-s":
             sysinfo = True
 
-    return SystemArgs(debug, sysinfo)
+        if arg == "--info" or arg == "-i":
+            logging = "info"
+        if arg == "--debug" or arg == "-d":
+            logging = "debug"
+
+    return SystemArgs(logging, sysinfo)
 
 
 def register_listeners(sysinfo: SystemInfo):
@@ -82,6 +86,8 @@ def main(stdscr) -> None:
         sysinfo = SystemInfo(win)
         register_listeners(sysinfo)
 
+    set_logging_level(args.logging)
+
     if sysinfo is not None:
         width = width
         height = height - 2
@@ -89,6 +95,7 @@ def main(stdscr) -> None:
     ov = Overworld(win, width, height)
     system = System(ov, sysinfo)
 
+    logging.info("Starting system")
     return asyncio.run(system.run())
 
 
