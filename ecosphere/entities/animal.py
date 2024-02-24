@@ -183,6 +183,9 @@ class Animal(Entity):
             )
         elif self.hunger >= 80 or self.thirst >= 80:
             self.health -= self.properties.health_decrease_rate
+        elif self.hunger <= 20 and self.thirst <= 20 and self.energy > 50:
+            self.health += self.properties.health_increase_rate
+
         self.health = clamp(self.health, 0, 100)
 
     def update(self, overworld: "Overworld", biome_manager: BiomeManager):
