@@ -16,6 +16,7 @@ from ecosphere.states import (
     SeekingWaterState,
     SleepingState,
 )
+from ecosphere.states.state import AnimalState
 
 from ecosphere.utils import clamp
 from ecosphere.world.biome import Biome, BiomeManager
@@ -32,7 +33,8 @@ class PerceivedEnvironment:
 
 
 def get_rand_prop(min_value: int = 50) -> float:
-    return min(min_value, round(random.random() * 100, 2))
+    _rand_val = random.uniform(min_value, 100)
+    return min(min_value, _rand_val)
 
 
 class Animal(Entity):
@@ -145,29 +147,34 @@ class Animal(Entity):
 
         overworld.stdscr.addstr(_old_position.y, _old_position.x, "  ", biome_color)
 
+    def change_state(self, state: AnimalState):
+        if not isinstance(self.state, state.__class__):
+            logging.debug(f"{self.id} is changing state to {state}.")
+            self.state = state
+
     def update_state(self):
         if self.health <= 0:
             if not isinstance(self.state, DeadState):
                 logging.debug(f"{self.id} has died.")
-                self.state = DeadState()
+                self.change_state(DeadState())
                 bus.emit("entity:dead", self)
                 return
 
         if self.energy <= 10:
             logging.debug(f"{self.id} is very tired and needs to rest.")
-            self.state = SleepingState()
-        elif self.thirst >= 60:
+            self.change_state(SleepingState())
+        elif self.thirst >= 50:
             logging.debug(f"{self.id} is thirsty and needs water.")
-            self.state = SeekingWaterState()
-        elif self.hunger >= 80:
+            self.change_state(SeekingWaterState())
+        elif self.hunger >= 50:
             logging.debug(f"{self.id} is hungry and needs to eat.")
-            self.state = ForagingState()
+            self.change_state(ForagingState())
         elif self.mating_urge >= 80 and self.energy > 50:
             logging.debug(f"{self.id} is in mood and needs to mate.")
-            self.state = MatingState()
+            self.change_state(MatingState())
         elif self.energy < 50:
             logging.debug(f"{self.id} is tired and needs to rest.")
-            self.state = SleepingState()
+            self.change_state(SleepingState())
 
     def update_status(self):
         # Update basic needs

@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 
 from ecosphere.abc.position import Position
+
 from ecosphere.states.state import AnimalState
 from ecosphere.states.idle_state import IdleState
 from ecosphere.states.moving_state import MovingState
@@ -55,5 +56,5 @@ class MatingState(AnimalState):
         self.energy -= 50
         mate.energy -= 50
 
-        self.state = IdleState()
-        mate.state = IdleState()
+        self.change_state(IdleState())
+        mate.change_state(IdleState())
