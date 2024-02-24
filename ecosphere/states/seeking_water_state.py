@@ -7,6 +7,7 @@ from ecosphere.states.state import AnimalState
 from ecosphere.states.idle_state import IdleState
 
 if TYPE_CHECKING:
+    from ecosphere.world.overworld import Overworld
     from ecosphere.common.environment_context import EnvironmentContext
     from ecosphere.entities.animal import Animal
 
@@ -85,7 +86,7 @@ class SeekingWaterState(AnimalState):
         if nearest_water_pos is not None:
             return nearest_water_pos
 
-    def decide_fallback_direction(self, animal, overworld):
+    def decide_fallback_direction(self, animal: "Animal", overworld: "Overworld"):
         directions = [Position(1, 0), Position(-1, 0), Position(0, 1), Position(0, -1)]
         fallback_direction = random.choice(directions)
 
