@@ -20,7 +20,7 @@ class StatusProperty:
     mating_urge_decrease_rate: float = 1
 
     health_increase_rate: float = 2
-    health_increate_multiplier: float = 2.5
+    health_increase_multiplier: float = 2.5
     health_decrease_rate: float = 2
 
     perception_radius: int = 30
