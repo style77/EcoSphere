@@ -6,6 +6,12 @@ class Position:
     x: int
     y: int
 
+    def __eq__(self, __value: "Position") -> bool:
+        return self.x == __value.x and self.y == __value.y
+
+    def __hash__(self):
+        return hash((self.x, self.y))
+
     def distance_to(self, other: "Position") -> float:
         return ((self.x - other.x) ** 2 + (self.y - other.y) ** 2) ** 0.5
 
