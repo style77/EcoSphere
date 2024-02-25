@@ -24,3 +24,4 @@ class StatusProperty:
     health_decrease_rate: float = 2
 
     perception_radius: int = 30
+    movement_speed: float = 1
