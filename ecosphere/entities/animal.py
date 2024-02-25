@@ -214,7 +214,7 @@ class Crab(Animal):
 
 class Fox(Animal):
     frequency = 0.01
-    _property = StatusProperty(movement_speed=2)
+    _property = StatusProperty(movement_speed=1.5)
 
     def __init__(self, position: Position, representation: str):
         super().__init__(position, representation, self._property)
