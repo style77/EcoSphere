@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from ecosphere.abc.position import Position
 from ecosphere.common.event_bus import bus
 from ecosphere.common.singleton import SingletonMeta
-from ecosphere.config import MINUTE_LENGTH
+from ecosphere.config import MINUTE_LENGTH, REFRESH_STATIC_AFTER
 from ecosphere.world.overworld import Overworld
 
 if TYPE_CHECKING:
@@ -22,6 +22,8 @@ class System(metaclass=SingletonMeta):
         self.info_win = None
 
         self._running = True
+
+        self._static_update_iter = 0
 
     async def show_entity_info(self, stdscr, entity: "Entity"):
         info_height = 11
@@ -85,31 +87,56 @@ class System(metaclass=SingletonMeta):
                     break
             await asyncio.sleep(0.1)
 
+    async def refresh_overworld(self):
+        while self._running:
+            self.overworld.draw(force_static=self._static_update_iter % REFRESH_STATIC_AFTER == 0)
+            await asyncio.sleep(0.3)
+
+    async def update_system_info(self):
+        while self._running:
+            self.system_info.draw()
+            await asyncio.sleep(0.1)
+
+    async def refresh_stdscr(self):
+        while self._running:
+            self.overworld.stdscr.refresh()
+            await asyncio.sleep(0.1)
+
     async def run(self) -> None:
         self.overworld.spawn_entities()
         self.overworld.stdscr.nodelay(True)
 
-        mouse_hover_task = asyncio.create_task(self.check_mouse_hover())
         key_listener_task = asyncio.create_task(self.key_listeners())
+
+        if self.system_info:
+            mouse_hover_task = asyncio.create_task(self.check_mouse_hover())
+            info_task = asyncio.create_task(self.update_system_info())
+
+        update_task = asyncio.create_task(self.overworld.update())
+        refresh_task = asyncio.create_task(self.refresh_overworld())
+
+        refresh_stdscr = asyncio.create_task(self.refresh_stdscr())
 
         try:
             while self._running:
-                self.overworld.update()
-                self.overworld.draw()
-
-                if self.system_info:
-                    self.system_info.draw()
-
-                self.overworld.stdscr.refresh()
-
+                self._static_update_iter += 1
                 await asyncio.sleep(MINUTE_LENGTH)
                 bus.emit("minute:passed")
         finally:
-            mouse_hover_task.cancel()
+            refresh_stdscr.cancel()
+
+            update_task.cancel()
+            refresh_task.cancel()
+            if self.system_info:
+                info_task.cancel()
+                mouse_hover_task.cancel()
+
             key_listener_task.cancel()
+
             self.overworld.stdscr.nodelay(False)
             self.overworld.stdscr.clear()
             self.overworld.stdscr.refresh()
+
             curses.endwin()
             bus.emit("system:shutdown")
             logging.info("System shutting down")
