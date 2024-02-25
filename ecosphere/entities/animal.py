@@ -1,4 +1,5 @@
 import logging
+import math
 import random
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, List
@@ -120,31 +121,16 @@ class Animal(Entity):
             nearby_entities=nearby_entities,
         )
 
-    def move_towards(
-        self, position: Position, overworld: "Overworld", biome_manager: BiomeManager
-    ):
-        dx = (
-            1
-            if position.x > self.position.x
-            else -1
-            if position.x < self.position.x
-            else 0
-        )
-        dy = (
-            1
-            if position.y > self.position.y
-            else -1
-            if position.y < self.position.y
-            else 0
-        )
-        _old_position = self.position
-        new_position = Position(self.position.x + dx, self.position.y + dy)
+    def move_towards(self, position: Position, overworld: "Overworld", biome_manager: BiomeManager):
+        dx = 1 if position.x > self.position.x else -1 if position.x < self.position.x else 0
+        dy = 1 if position.y > self.position.y else -1 if position.y < self.position.y else 0
 
+        new_position = Position(x=self.position.x + dx, y=self.position.y + dy)
+        _old_position = self.position
         self._move(new_position.x, new_position.y, overwrite=True)
 
         biome = biome_manager.get_biome_by_coords(self.position.x, self.position.y)
         biome_color = biome_manager.get_biome_color(biome)
-
         overworld.stdscr.addstr(_old_position.y, _old_position.x, "  ", biome_color)
 
     def change_state(self, state: AnimalState):
@@ -201,7 +187,7 @@ class Animal(Entity):
 
         self.health = clamp(self.health, 0, 100)
 
-    def update(self, overworld: "Overworld", biome_manager: BiomeManager):
+    async def update(self, overworld: "Overworld", biome_manager: BiomeManager):
         if isinstance(self.state, DeadState):
             return
 
@@ -228,7 +214,7 @@ class Crab(Animal):
 
 class Fox(Animal):
     frequency = 0.01
-    _property = StatusProperty()
+    _property = StatusProperty(movement_speed=2)
 
     def __init__(self, position: Position, representation: str):
         super().__init__(position, representation, self._property)
@@ -236,3 +222,15 @@ class Fox(Animal):
     @staticmethod
     def get_representation(biome: Biome):
         return "🦊"
+
+
+class Fish(Animal):
+    frequency = 0.03
+    _property = StatusProperty(movement_speed=1)
+
+    def __init__(self, position: Position, representation: str):
+        super().__init__(position, representation, self._property)
+
+    @staticmethod
+    def get_representation(biome: Biome):
+        return random.choice(["🐟", "🐠", "🐡"])
