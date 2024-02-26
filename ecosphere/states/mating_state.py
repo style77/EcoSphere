@@ -18,7 +18,7 @@ class MatingState(AnimalState):
     environment and move towards them. If it finds a mate, they will reproduce.
     """
 
-    def handle(
+    async def handle(
         self, animal: "Animal", environment_context: "EnvironmentContext"
     ) -> None:
         environment = self.perceive_environment(
@@ -31,7 +31,7 @@ class MatingState(AnimalState):
             )
             if animal.position.distance_to(mate.position) <= animal.perception_radius:
                 if not animal.position.is_next_to(mate.position):
-                    animal.move_towards(
+                    await animal.move_towards(
                         mate.position,
                         environment_context.overworld,
                         environment_context.biome_manager,

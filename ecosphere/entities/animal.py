@@ -121,7 +121,7 @@ class Animal(Entity):
             nearby_entities=nearby_entities,
         )
 
-    def move_towards(self, position: Position, overworld: "Overworld", biome_manager: BiomeManager):
+    async def move_towards(self, position: Position, overworld: "Overworld", biome_manager: BiomeManager):
         dx = 1 if position.x > self.position.x else -1 if position.x < self.position.x else 0
         dy = 1 if position.y > self.position.y else -1 if position.y < self.position.y else 0
 
@@ -197,7 +197,7 @@ class Animal(Entity):
         logging.debug(
             f"{self.id} at {self.position} is {self.state} and has {self.health} health, {self.hunger} hunger, {self.thirst} thirst, {self.energy} energy, and {self.mating_urge} mating urge."
         )
-        self.state.handle(self, EnvironmentContext(overworld, biome_manager))
+        await self.state.handle(self, EnvironmentContext(overworld, biome_manager))
 
 
 class Crab(Animal):
@@ -214,7 +214,7 @@ class Crab(Animal):
 
 class Fox(Animal):
     frequency = 0.01
-    _property = StatusProperty(movement_speed=1.5)
+    _property = StatusProperty(movement_speed=2)
 
     def __init__(self, position: Position, representation: str):
         super().__init__(position, representation, self._property)
@@ -226,7 +226,7 @@ class Fox(Animal):
 
 class Fish(Animal):
     frequency = 0.03
-    _property = StatusProperty(movement_speed=1)
+    _property = StatusProperty()
 
     def __init__(self, position: Position, representation: str):
         super().__init__(position, representation, self._property)

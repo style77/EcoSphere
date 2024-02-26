@@ -72,7 +72,7 @@ class System(metaclass=SingletonMeta):
                 if self.info_win:
                     self.info_win.clear()
                     self.info_win.refresh()
-                    self.overworld.draw(force_static=True)
+                    await self.overworld.draw(force_static=True)
                     self.overworld.stdscr.refresh()
                     curses.doupdate()
                     self.info_win = None
@@ -89,17 +89,14 @@ class System(metaclass=SingletonMeta):
 
     async def refresh_overworld(self):
         while self._running:
-            self.overworld.draw(force_static=self._static_update_iter % REFRESH_STATIC_AFTER == 0)
-            await asyncio.sleep(0.3)
+            await self.overworld.draw(force_static=self._static_update_iter % REFRESH_STATIC_AFTER == 0)
+            self.overworld.stdscr.refresh()
+
+            await asyncio.sleep(0.05)
 
     async def update_system_info(self):
         while self._running:
-            self.system_info.draw()
-            await asyncio.sleep(0.1)
-
-    async def refresh_stdscr(self):
-        while self._running:
-            self.overworld.stdscr.refresh()
+            await self.system_info.draw()
             await asyncio.sleep(0.1)
 
     async def run(self) -> None:
@@ -115,16 +112,12 @@ class System(metaclass=SingletonMeta):
         update_task = asyncio.create_task(self.overworld.update())
         refresh_task = asyncio.create_task(self.refresh_overworld())
 
-        refresh_stdscr = asyncio.create_task(self.refresh_stdscr())
-
         try:
             while self._running:
                 self._static_update_iter += 1
                 await asyncio.sleep(MINUTE_LENGTH)
                 bus.emit("minute:passed")
         finally:
-            refresh_stdscr.cancel()
-
             update_task.cancel()
             refresh_task.cancel()
             if self.system_info:

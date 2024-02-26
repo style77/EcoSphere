@@ -103,7 +103,7 @@ class SystemInfo(metaclass=SingletonMeta):
             machine_info += f"CPU: {int(cpu_percent)}% | MEM: {int(memory_percent)}%"
         return machine_info
 
-    def draw(self):
+    async def draw(self):
         """
         Draw system info to the screen.
         """

@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 class AnimalState(State, ABC):
     @abstractmethod
-    def handle(
+    async def handle(
         self, animal: "Animal", environment_context: "EnvironmentContext"
     ) -> None:
         pass

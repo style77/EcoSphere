@@ -17,7 +17,7 @@ class SeekingWaterState(AnimalState):
     def __init__(self):
         self.__fallback_direction = None
 
-    def handle(self, animal: "Animal", environment_context: "EnvironmentContext"):
+    async def handle(self, animal: "Animal", environment_context: "EnvironmentContext"):
         if animal.thirst <= 0:
             logging.debug(f"{animal} is no longer thirsty.")
             animal.state = IdleState()
@@ -36,7 +36,7 @@ class SeekingWaterState(AnimalState):
                     animal.state = IdleState()
             else:
                 logging.debug(f"{animal} is moving towards water.")
-                animal.move_towards(
+                await animal.move_towards(
                     nearest_water,
                     environment_context.overworld,
                     environment_context.biome_manager,
@@ -48,7 +48,7 @@ class SeekingWaterState(AnimalState):
             fallback_direction = self.decide_fallback_direction(
                 animal, environment_context.overworld
             )
-            animal.move_towards(
+            await animal.move_towards(
                 fallback_direction,
                 environment_context.overworld,
                 environment_context.biome_manager,

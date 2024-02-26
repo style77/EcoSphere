@@ -54,7 +54,7 @@ class BiomeManager:
         ]
         return biome_map
 
-    def draw(self):
+    async def draw(self):
         """
         Color the screen according to the biome map.
         """
