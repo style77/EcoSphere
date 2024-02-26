@@ -10,6 +10,7 @@ from ecosphere.common.event_bus import bus
 from ecosphere.common.onetime_caller import OneTimeCaller
 from ecosphere.common.singleton import SingletonMeta
 from ecosphere.config import ENTITIES, ENTITY_BIOME_SPAWN_RATES, MINUTE_LENGTH
+from ecosphere.states.dead_state import DeadState
 from ecosphere.world.biome import Biome, BiomeManager
 
 
@@ -106,7 +107,7 @@ class Overworld(metaclass=SingletonMeta):
         return position in [entity.position for entity in self.entities]
 
     async def update_entity(self, entity):
-        while True:  # Assuming entities live indefinitely or have their own termination condition
+        while not isinstance(entity.state, DeadState):
             await entity.update(self, self.biome)
             await asyncio.sleep(MINUTE_LENGTH / entity.properties.movement_speed)
 
@@ -115,7 +116,11 @@ class Overworld(metaclass=SingletonMeta):
         Update all the entities in the overworld.
         """
         logging.debug("Updating entities in the overworld.")
-        update_tasks = [asyncio.create_task(self.update_entity(entity)) for entity in self.entities if entity.dynamic]
+        update_tasks = [
+            asyncio.create_task(self.update_entity(entity))
+            for entity in self.entities
+            if entity.dynamic
+        ]
 
         await asyncio.gather(*update_tasks)
 
