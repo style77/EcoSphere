@@ -95,7 +95,7 @@ class System(metaclass=SingletonMeta):
             )
             self.overworld.stdscr.refresh()
 
-            await asyncio.sleep(0.05)
+            await asyncio.sleep(0.1)
 
     async def update_system_info(self):
         while self._running:
