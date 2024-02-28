@@ -34,13 +34,15 @@ class FoodSpawner(Entity):
             )
             > self.properties.range_capacity
         ):
-            print("Spawner is full", self.position, self.properties.range_capacity)
             return
 
         for _ in range(self.properties.range_capacity):
             position = Position.get_random_position_in_radius(
                 self.position, self.properties.dispersal_radius
             )
+            position.x = max(0, min(position.x, overworld.width - 1))
+            position.y = max(0, min(position.y, overworld.height - 1))
+
             if not overworld.is_occupied(position):
                 overworld.spawn_food(self.food, position)
 
@@ -71,7 +73,9 @@ class Mushrooms(FoodSpawner):
 
 class Seaweeds(FoodSpawner):
     frequency = 0.01
-    _property = SpawnerProperty()
+    _property = SpawnerProperty(
+        dispersal_speed=0.5, range_capacity=5, dispersal_radius=3
+    )
 
     def __init__(self, position: Position, representation: Literal["🌿"]):
         super().__init__(position, representation, Seaweed, properties=self._property)
