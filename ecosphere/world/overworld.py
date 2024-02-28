@@ -1,5 +1,6 @@
 import asyncio
 import curses
+import itertools
 import logging
 import random
 from typing import Any, List
@@ -9,7 +10,15 @@ from ecosphere.abc.position import Position
 from ecosphere.common.event_bus import bus
 from ecosphere.common.onetime_caller import OneTimeCaller
 from ecosphere.common.singleton import SingletonMeta
-from ecosphere.config import ENTITIES, ENTITY_BIOME_SPAWN_RATES, MINUTE_LENGTH
+from ecosphere.config import (
+    ENTITIES,
+    ENTITY_BIOME_SPAWN_RATES,
+    MINUTE_LENGTH,
+    FOOD_BIOME_SPAWN_RATES,
+    SPAWNERS,
+)
+from ecosphere.entities.food import Food
+from ecosphere.entities.food_spawner import FoodSpawner
 from ecosphere.states.dead_state import DeadState
 from ecosphere.world.biome import Biome, BiomeManager
 
@@ -22,6 +31,8 @@ class Overworld(metaclass=SingletonMeta):
         self.height = height
 
         self.entities: List[Entity] = []
+        self.spawners: List[FoodSpawner] = []
+        self.food: List[Food] = []
 
         self.biome = BiomeManager(stdscr, self.width, self.height)
 
@@ -30,7 +41,7 @@ class Overworld(metaclass=SingletonMeta):
     def _calculate_entity_cap(self, frequency: float = 0.25):
         return self.width * self.height * frequency
 
-    def _calculate_position(self):  # UNSAFE
+    def _calculate_position(self):  # UNSAFE TODO
         occupied = True
         while occupied:
             x = random.randint(0, self.width - 1)
@@ -42,9 +53,16 @@ class Overworld(metaclass=SingletonMeta):
 
         return position
 
-    def _get_spawn_rate(self, entity: Entity, biome: Biome):
-        for entity_biome_spawn_rate in ENTITY_BIOME_SPAWN_RATES:
-            if entity_biome_spawn_rate.entity_name == entity.__name__:
+    def _get_spawn_rate(self, entity: Entity, biome: Biome, *, spawner: bool = False):
+        rates = FOOD_BIOME_SPAWN_RATES if spawner else ENTITY_BIOME_SPAWN_RATES
+
+        for entity_biome_spawn_rate in rates:
+            entity_name = (
+                entity_biome_spawn_rate.food_name
+                if spawner
+                else entity_biome_spawn_rate.entity_name
+            )
+            if entity_name == entity.__name__:
                 return getattr(entity_biome_spawn_rate.spawn_rates, biome.name, 0)
         return 0
 
@@ -72,7 +90,9 @@ class Overworld(metaclass=SingletonMeta):
                 await self._draw_entity(entity, entity.position)
             self._static_drawn = True
 
-        dynamic_entities = [entity for entity in self.entities if entity.dynamic]
+        entities = [entity for entity in self.entities if entity.dynamic]
+
+        dynamic_entities = itertools.chain(entities, self.food)
 
         for entity in dynamic_entities:
             await self._draw_entity(entity, entity.position)
@@ -98,39 +118,56 @@ class Overworld(metaclass=SingletonMeta):
 
     def get_nearby_entities(self, entity: Entity, perception_range: int):
         nearby_entities = []
-        for other_entity in self.entities:
+        for other_entity in itertools.filterfalse(lambda e: e == entity, self.entities):
             if entity.position.is_within_range(other_entity.position, perception_range):
                 nearby_entities.append(entity)
         return nearby_entities
 
+    def get_nearby_food(self, position: Position, perception_range: int):
+        nearby_food = []
+        for food in self.food:
+            if position.is_within_range(food.position, perception_range):
+                nearby_food.append(food)
+        return nearby_food
+
     def is_occupied(self, position: Position):
         return position in [entity.position for entity in self.entities]
 
-    async def update_entity(self, entity):
+    async def update_entity(self, entity: Entity):
         while not isinstance(entity.state, DeadState):
             await entity.update(self, self.biome)
             await asyncio.sleep(MINUTE_LENGTH / entity.properties.movement_speed)
 
+    async def update_spawner(self, spawner: FoodSpawner):
+        while True:
+            print("Updating spawner", spawner)
+            await spawner.update(self, self.biome)
+            await asyncio.sleep(MINUTE_LENGTH / spawner.properties.dispersal_speed)
+
     async def update(self):
         """
-        Update all the entities in the overworld.
+        Update overworld.
         """
-        logging.debug("Updating entities in the overworld.")
+        logging.info("Updating overworld.")
         update_tasks = [
-            asyncio.create_task(self.update_entity(entity))
-            for entity in self.entities
-            if entity.dynamic
+            asyncio.create_task(self.update_spawner(entity)) if isinstance(entity, FoodSpawner) else asyncio.create_task(self.update_entity(entity))
+            for entity in itertools.chain([e for e in self.entities if e.dynamic], self.spawners)
         ]
 
         await asyncio.gather(*update_tasks)
 
-        logging.info("Entities updated.")
+        logging.info("Overworld updated.")
 
     def _spawn_entities(self):
         for entity_class in ENTITIES:
             cap = self._calculate_entity_cap(entity_class.frequency)
             for _ in range(round(cap)):
-                self.spawn_entity(entity_class)
+                self.spawn_entity(entity_class, spawner=False)
+
+        for spawner_class in SPAWNERS:
+            cap = self._calculate_entity_cap(spawner_class.frequency)
+            for _ in range(round(cap)):
+                self.spawn_entity(spawner_class, spawner=True)
 
     def spawn_entities(self):
         """
@@ -141,7 +178,20 @@ class Overworld(metaclass=SingletonMeta):
         oc()
         logging.info("Entities spawned.")
 
-    def spawn_entity(self, entity: Entity, position: Position = None):
+    def spawn_food(self, food: Food, position: Position):
+        """
+        Spawn food at the given position.
+        """
+        biome = self.biome.get_biome_by_coords(position.x, position.y)
+        food = food.create(position, biome)
+
+        self.food.append(food)
+        bus.emit("entity:created", food)
+        logging.info(f"{food} spawned at {position}.")
+
+    def spawn_entity(
+        self, entity: Entity, position: Position = None, *, spawner: bool = False
+    ):
         """
         Create new entity and add it to the overworld.
 
@@ -155,11 +205,15 @@ class Overworld(metaclass=SingletonMeta):
         else:
             biome = self.biome.get_biome_by_coords(position.x, position.y)
 
-        spawn_rate = self._get_spawn_rate(entity, biome)
+        spawn_rate = self._get_spawn_rate(entity, biome, spawner=spawner)
 
         if random.random() < spawn_rate:
             entity = entity.create(position, biome)
-            self.entities.append(entity)
+
+            if spawner:
+                self.spawners.append(entity)
+            else:
+                self.entities.append(entity)
 
             bus.emit("entity:created", entity)
             logging.debug(f"{entity} spawned at {position}.")
