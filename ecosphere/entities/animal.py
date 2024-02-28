@@ -169,7 +169,7 @@ class Animal(Entity):
         self.energy = clamp(self.energy - self.properties.energy_decrease_rate, 0, 100)
 
         # Update mating urge based on hunger, thirst, and energy
-        if self.hunger <= 20 and self.thirst <= 20 and self.energy > 50:
+        if self.hunger <= 50 and self.thirst <= 50 and self.energy > 50:
             self.mating_urge += self.properties.mating_urge_increase_rate
         else:
             self.mating_urge -= self.properties.mating_urge_decrease_rate

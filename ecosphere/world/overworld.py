@@ -19,7 +19,7 @@ from ecosphere.config import (
 )
 from ecosphere.entities.food import Food
 from ecosphere.entities.food_spawner import FoodSpawner
-from ecosphere.states.dead_state import DeadState
+from ecosphere.states import DeadState
 from ecosphere.world.biome import Biome, BiomeManager
 
 
@@ -116,21 +116,23 @@ class Overworld(metaclass=SingletonMeta):
                 return entity
         return None
 
-    def get_nearby_entities(self, entity: Entity, perception_range: int):
+    def get_nearby_entities(
+        self, entity: Entity, perception_range: int
+    ) -> List[Entity]:
         nearby_entities = []
         for other_entity in itertools.filterfalse(lambda e: e == entity, self.entities):
             if entity.position.is_within_range(other_entity.position, perception_range):
                 nearby_entities.append(entity)
         return nearby_entities
 
-    def get_nearby_food(self, position: Position, perception_range: int):
+    def get_nearby_food(self, position: Position, perception_range: int) -> List[Food]:
         nearby_food = []
         for food in self.food:
             if position.is_within_range(food.position, perception_range):
                 nearby_food.append(food)
         return nearby_food
 
-    def is_occupied(self, position: Position):
+    def is_occupied(self, position: Position) -> bool:
         return position in [entity.position for entity in self.entities]
 
     async def update_entity(self, entity: Entity):
@@ -150,8 +152,12 @@ class Overworld(metaclass=SingletonMeta):
         """
         logging.info("Updating overworld.")
         update_tasks = [
-            asyncio.create_task(self.update_spawner(entity)) if isinstance(entity, FoodSpawner) else asyncio.create_task(self.update_entity(entity))
-            for entity in itertools.chain([e for e in self.entities if e.dynamic], self.spawners)
+            asyncio.create_task(self.update_spawner(entity))
+            if isinstance(entity, FoodSpawner)
+            else asyncio.create_task(self.update_entity(entity))
+            for entity in itertools.chain(
+                [e for e in self.entities if e.dynamic], self.spawners
+            )
         ]
 
         await asyncio.gather(*update_tasks)
@@ -177,6 +183,22 @@ class Overworld(metaclass=SingletonMeta):
         oc = OneTimeCaller(self._spawn_entities)
         oc()
         logging.info("Entities spawned.")
+
+    def remove(self, entity: Entity):
+        """
+        Remove entity from the overworld.
+        """
+        mapper = None
+        if isinstance(entity, Food):
+            mapper = self.food
+        elif isinstance(entity, FoodSpawner):
+            mapper = self.spawners
+        else:
+            mapper = self.entities
+
+        mapper.remove(entity)
+        bus.emit("entity:removed", entity)
+        logging.info(f"{entity} removed from the overworld.")
 
     def spawn_food(self, food: Food, position: Position):
         """
