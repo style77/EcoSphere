@@ -40,7 +40,7 @@ class Entity(ABC):
     def update(self):
         raise NotImplementedError
 
-    async def _move(self, x: int, y: int, overwrite: bool = False) -> None:
+    def _move(self, x: int, y: int, overwrite: bool = False) -> None:
         """
         Move the entity by the specified amount. If overwrite is True, the entity's position is set to the new position.
 

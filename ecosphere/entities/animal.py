@@ -147,7 +147,7 @@ class Animal(Entity):
                     biome_manager,
                 )
 
-        await self._move(new_position.x, new_position.y, overwrite=True)
+        self._move(new_position.x, new_position.y, overwrite=True)
 
         biome = biome_manager.get_biome_by_coords(_old_position.x, _old_position.y)
         biome_color = biome_manager.get_biome_color(biome)

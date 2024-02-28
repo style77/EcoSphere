@@ -73,7 +73,7 @@ class System(metaclass=SingletonMeta):
                 if self.info_win:
                     self.info_win.clear()
                     self.info_win.refresh()
-                    await self.overworld.draw(force_static=True)
+                    self.overworld.draw(force_static=True)
                     self.overworld.stdscr.refresh()
                     curses.doupdate()
                     self.info_win = None
@@ -90,7 +90,7 @@ class System(metaclass=SingletonMeta):
 
     async def refresh_overworld(self):
         while self._running:
-            await self.overworld.draw(
+            self.overworld.draw(
                 force_static=self._static_update_iter % REFRESH_STATIC_AFTER == 0
             )
             self.overworld.stdscr.refresh()

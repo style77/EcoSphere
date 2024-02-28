@@ -66,7 +66,7 @@ class Overworld(metaclass=SingletonMeta):
                 return getattr(entity_biome_spawn_rate.spawn_rates, biome.name, 0)
         return 0
 
-    async def _draw_entity(self, entity: Entity, position: Position):
+    def _draw_entity(self, entity: Entity, position: Position):
         biome = self.biome.get_biome_by_coords(position.x, position.y)
         biome_color = self.biome.get_biome_color(biome)
 
@@ -77,17 +77,17 @@ class Overworld(metaclass=SingletonMeta):
         except curses.error:
             pass
 
-    async def draw(self, force_static: bool = False):
+    def draw(self, force_static: bool = False):
         """
         Draw all the existing entities on the board.
         """
         logging.debug("Drawing entities in the overworld.")
         if not self._static_drawn or force_static:
-            await self.biome.draw()
+            self.biome.draw()
 
             static_entities = [entity for entity in self.entities if not entity.dynamic]
             for entity in static_entities:
-                await self._draw_entity(entity, entity.position)
+                self._draw_entity(entity, entity.position)
             self._static_drawn = True
 
         entities = [entity for entity in self.entities if entity.dynamic]
@@ -95,7 +95,7 @@ class Overworld(metaclass=SingletonMeta):
         dynamic_entities = itertools.chain(entities, self.food)
 
         for entity in dynamic_entities:
-            await self._draw_entity(entity, entity.position)
+            self._draw_entity(entity, entity.position)
         logging.debug("Entities drawn.")
 
     def end(self):
