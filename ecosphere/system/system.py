@@ -108,6 +108,7 @@ class System(metaclass=SingletonMeta):
             self.overworld.spawn_entities()
             self.overworld.stdscr.nodelay(True)
 
+            # Create tasks
             key_listener_task = asyncio.create_task(self.key_listeners())
             tasks.append(key_listener_task)
 
@@ -120,29 +121,27 @@ class System(metaclass=SingletonMeta):
             refresh_task = asyncio.create_task(self.refresh_overworld())
             tasks.extend([update_task, refresh_task])
 
-            await asyncio.wait(tasks, return_when=asyncio.FIRST_EXCEPTION)
+            # This loop will exit when _running is set to False
+            while self._running:
+                await asyncio.sleep(0.1)  # Short sleep to yield control
 
+            # Once _running is False, ensure all tasks are cancelled
             for task in tasks:
-                if task.done() and task.exception():
-                    exception = task.exception()
-                    logging.error(f"An error occurred: {exception}")
-                    raise exception
+                task.cancel()
+
+            # Wait for all tasks to be cancelled, acknowledging exceptions
+            await asyncio.gather(*tasks, return_exceptions=True)
 
         except asyncio.CancelledError:
             logging.info("Tasks were cancelled.")
         except Exception as e:
-            if logging.root.level == logging.DEBUG:
-                traceback.print_exc()
             logging.error(f"Unhandled exception: {e}")
         finally:
-            for task in tasks:
-                if not task.done():
-                    task.cancel()
-            await asyncio.gather(*tasks, return_exceptions=True)
+            # Final cleanup and shutdown operations
             self.shutdown()
 
     def shutdown(self):
-        # Clean up resources and prepare for shutdown
+        self.overworld.end()
         self.overworld.stdscr.nodelay(False)
         self.overworld.stdscr.clear()
         self.overworld.stdscr.refresh()
