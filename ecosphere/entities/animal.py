@@ -2,12 +2,13 @@ import logging
 import math
 import random
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Type
 
 from ecosphere.abc.entity import Entity
 from ecosphere.abc.position import Position
 
 from ecosphere.common import EnvironmentContext, bus, StatusProperty
+from ecosphere.entities.food import Berry, Food, Mushroom, Seaweed, Wheat
 
 from ecosphere.states import (
     DeadState,
@@ -46,6 +47,8 @@ class Animal(Entity):
         position: Position object representing the entity's location in the overworld
         representation: str representing the animal's representation in the overworld
     """
+    _cant_go_on_land = False
+    _can_eat: List[Type[Food]] = []
 
     def __init__(
         self,
@@ -104,7 +107,6 @@ class Animal(Entity):
         self, overworld: "Overworld", biome_manager: BiomeManager
     ) -> PerceivedEnvironment:
         nearby_entities = overworld.get_nearby_entities(self, self.perception_radius)
-
         potential_mates = []
 
         for entity in nearby_entities:
@@ -127,9 +129,15 @@ class Animal(Entity):
 
         new_position = Position(x=self.position.x + dx, y=self.position.y + dy)
         _old_position = self.position
+
+        if self._cant_go_on_land:
+            biome = biome_manager.get_biome_by_coords(new_position.x, new_position.y)
+            if biome != Biome.WATER:
+                return await self.move_towards(self._calculate_position(overworld, biome_manager), overworld, biome_manager)
+
         await self._move(new_position.x, new_position.y, overwrite=True)
 
-        biome = biome_manager.get_biome_by_coords(self.position.x, self.position.y)
+        biome = biome_manager.get_biome_by_coords(_old_position.x, _old_position.y)
         biome_color = biome_manager.get_biome_color(biome)
         overworld.stdscr.addstr(_old_position.y, _old_position.x, "  ", biome_color)
 
@@ -204,6 +212,8 @@ class Crab(Animal):
     frequency = 0.01
     _property = StatusProperty()
 
+    _can_eat = [Seaweed, Mushroom]
+
     def __init__(self, position: Position, representation: str):
         super().__init__(position, representation, self._property)
 
@@ -216,6 +226,8 @@ class Fox(Animal):
     frequency = 0.01
     _property = StatusProperty(movement_speed=2)
 
+    _can_eat = [Mushroom, Berry, Wheat]
+
     def __init__(self, position: Position, representation: str):
         super().__init__(position, representation, self._property)
 
@@ -227,6 +239,9 @@ class Fox(Animal):
 class Fish(Animal):
     frequency = 0.03
     _property = StatusProperty()
+    _cant_go_on_land = True
+
+    _can_eat = [Seaweed]
 
     def __init__(self, position: Position, representation: str):
         super().__init__(position, representation, self._property)
