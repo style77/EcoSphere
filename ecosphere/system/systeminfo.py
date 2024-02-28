@@ -110,5 +110,5 @@ class SystemInfo(metaclass=SingletonMeta):
         overworld_info = self._get_overworld_info()
         machine_info = self._get_machine_info()
 
-        self.stdscr.addstr(self.height - 2, 0, overworld_info, curses.color_pair(7))
+        self.stdscr.addstr(self.height - 3, 0, overworld_info, curses.color_pair(7))
         self.stdscr.addstr(self.height - 1, 0, machine_info, curses.color_pair(7))

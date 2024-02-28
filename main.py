@@ -91,7 +91,7 @@ def main(stdscr) -> None:
 
     if sysinfo is not None:
         width = width
-        height = height - 2
+        height = height - 3
 
     ov = Overworld(win, width, height)
     system = System(ov, sysinfo)
