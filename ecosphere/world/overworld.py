@@ -3,7 +3,7 @@ import curses
 import itertools
 import logging
 import random
-from typing import Any, List
+from typing import Any, List, Type
 
 from ecosphere.abc.entity import Entity
 from ecosphere.abc.position import Position
@@ -125,9 +125,23 @@ class Overworld(metaclass=SingletonMeta):
                 nearby_entities.append(entity)
         return nearby_entities
 
-    def get_nearby_food(self, position: Position, perception_range: int) -> List[Food]:
+    def get_nearby_food(
+        self,
+        position: Position,
+        perception_range: int,
+        *,
+        food_type: List[Type[Food]] = None,
+    ) -> List[Food]:
         nearby_food = []
-        for food in self.food:
+
+        if food_type:
+            food_list = [
+                food for food in self.food if isinstance(food, tuple(food_type))
+            ]
+        else:
+            food_list = self.food
+
+        for food in food_list:
             if position.is_within_range(food.position, perception_range):
                 nearby_food.append(food)
         return nearby_food
@@ -142,7 +156,6 @@ class Overworld(metaclass=SingletonMeta):
 
     async def update_spawner(self, spawner: FoodSpawner):
         while True:
-            print("Updating spawner", spawner)
             await spawner.update(self, self.biome)
             await asyncio.sleep(MINUTE_LENGTH / spawner.properties.dispersal_speed)
 
@@ -209,7 +222,7 @@ class Overworld(metaclass=SingletonMeta):
 
         self.food.append(food)
         bus.emit("entity:created", food)
-        logging.info(f"{food} spawned at {position}.")
+        logging.debug(f"{food} spawned at {position}.")
 
     def spawn_entity(
         self, entity: Entity, position: Position = None, *, spawner: bool = False
