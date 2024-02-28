@@ -146,30 +146,6 @@ class Animal(Entity):
             logging.debug(f"{self.id} is changing state to {state}.")
             self.state = state
 
-    def update_state(self):
-        if self.health <= 0:
-            if not isinstance(self.state, DeadState):
-                logging.debug(f"{self.id} has died.")
-                self.change_state(DeadState())
-                bus.emit("entity:dead", self)
-                return
-
-        if self.energy <= 10:
-            logging.debug(f"{self.id} is very tired and needs to rest.")
-            self.change_state(SleepingState())
-        elif self.thirst >= 50:
-            logging.debug(f"{self.id} is thirsty and needs water.")
-            self.change_state(SeekingWaterState())
-        elif self.hunger >= 50:
-            logging.debug(f"{self.id} is hungry and needs to eat.")
-            self.change_state(ForagingState())
-        elif self.mating_urge >= 80 and self.energy > 50:
-            logging.debug(f"{self.id} is in mood and needs to mate.")
-            self.change_state(MatingState())
-        elif self.energy < 50:
-            logging.debug(f"{self.id} is tired and needs to rest.")
-            self.change_state(SleepingState())
-
     def update_status(self):
         # Update basic needs
         self.hunger = clamp(self.hunger + self.properties.hunger_increase_rate, 0, 100)
@@ -200,7 +176,6 @@ class Animal(Entity):
             return
 
         self.update_status()
-        self.update_state()
 
         logging.debug(
             f"{self.id} at {self.position} is {self.state} and has {self.health} health, {self.hunger} hunger, {self.thirst} thirst, {self.energy} energy, and {self.mating_urge} mating urge."

@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING
 from ecosphere.abc.position import Position
 
 from ecosphere.states.state import AnimalState
-from ecosphere.common.event_bus import bus
 
 import logging
 
@@ -36,17 +35,30 @@ class IdleState(AnimalState):
     async def handle(
         self, animal: "Animal", environment_context: "EnvironmentContext"
     ) -> None:
-        if self.health <= 0:
-            if not isinstance(self.state, DeadState):
-                logging.debug(f"{self.id} has died.")
+        if animal.health <= 0:
+            if not isinstance(animal.state, DeadState):
+                logging.debug(f"{animal.id} has died.")
                 animal.change_state(DeadState())
-                bus.emit("entity:dead", self)
+                # bus.emit("entity:dead", self)
                 return
 
-        if animal.energy >= 80:  # Animal is full of energy and can just have some fun
-            animal.change_state(MovingState())
+        if animal.energy <= 10:
+            logging.debug(f"{animal.id} is very tired and needs to rest.")
+            animal.change_state(SleepingState())
+        elif animal.thirst >= 50:
+            logging.debug(f"{animal.id} is thirsty and needs water.")
+            animal.change_state(SeekingWaterState())
+        elif animal.hunger >= 50:
+            logging.debug(f"{animal.id} is hungry and needs to eat.")
+            animal.change_state(ForagingState())
+        elif animal.mating_urge >= 80 and animal.energy > 50:
+            logging.debug(f"{animal.id} is in mood and needs to mate.")
+            animal.change_state(MatingState())
+        elif animal.energy < 50:
+            logging.debug(f"{animal.id} is tired and needs to rest.")
+            animal.change_state(SleepingState())
         else:
-            animal.change_state(random.choice([MovingState(), SleepingState()]))
+            animal.change_state(MovingState())
 
 
 class ForagingState(AnimalState):
@@ -104,7 +116,7 @@ class ForagingState(AnimalState):
         min_distance = float("inf")
 
         nearest_food = environment_context.overworld.get_nearby_food(
-            current_pos, perception_range
+            current_pos, perception_range, food_type=animal._can_eat
         )
 
         for food in nearest_food:
@@ -125,13 +137,13 @@ class MatingState(AnimalState):
     async def handle(
         self, animal: "Animal", environment_context: "EnvironmentContext"
     ) -> None:
-        environment = self.perceive_environment(
+        environment = animal.perceive_environment(
             environment_context.overworld, environment_context.biome_manager
         )
         if environment.potential_mates:
             mate: Animal = min(
                 environment.potential_mates,
-                key=lambda mate: animal.distance_to(mate.position),
+                key=lambda mate: animal.position.distance_to(mate.position),
             )
             if animal.position.distance_to(mate.position) <= animal.perception_radius:
                 if not animal.position.is_next_to(mate.position):
@@ -141,26 +153,40 @@ class MatingState(AnimalState):
                         environment_context.biome_manager,
                     )
                 else:
-                    self.reproduce(mate, animal.overworld)
+                    self.reproduce(animal, mate, environment_context.overworld)
+            else:
+                logging.debug(f"{animal} is moving towards a potential mate.")
+                await animal.move_towards(
+                    mate.position,
+                    environment_context.overworld,
+                    environment_context.biome_manager,
+                )
         else:
-            animal.state = MovingState()
+            fallback_direction = self.decide_fallback_direction(
+                animal, environment_context.overworld
+            )
+            await animal.move_towards(
+                fallback_direction,
+                environment_context.overworld,
+                environment_context.biome_manager,
+            )
 
-    def calculate_offspring_position(self, mate_position: Position) -> Position:
+    def calculate_offspring_position(self, animal_position: Position, mate_position: Position) -> Position:
         return Position(
-            (self.position.x + mate_position.x) // 2,
-            (self.position.y + mate_position.y) // 2,
+            (animal_position.x + mate_position.x) // 2,
+            (animal_position.y + mate_position.y) // 2,
         )
 
-    def reproduce(self, mate: "Animal", overworld: "Overworld") -> None:
-        offspring_position = self.calculate_offspring_position(mate.position)
+    def reproduce(self, animal: "Animal", mate: "Animal", overworld: "Overworld") -> None:
+        offspring_position = self.calculate_offspring_position(animal.position, mate.position)
 
-        offspring = mate.__class__
+        offspring = animal.__class__
         overworld.spawn_entity(offspring, offspring_position)
 
-        self.energy -= 50
+        animal.energy -= 50
         mate.energy -= 50
 
-        self.change_state(IdleState())
+        animal.change_state(IdleState())
         mate.change_state(IdleState())
 
 
@@ -181,9 +207,6 @@ class MovingState(AnimalState):
 
 
 class SeekingWaterState(AnimalState):
-    def __init__(self):
-        self.__fallback_direction = None
-
     async def handle(self, animal: "Animal", environment_context: "EnvironmentContext"):
         if animal.thirst <= 0:
             logging.debug(f"{animal} is no longer thirsty.")
@@ -263,32 +286,6 @@ class SeekingWaterState(AnimalState):
 
         if nearest_water_pos is not None:
             return nearest_water_pos
-
-    def decide_fallback_direction(self, animal: "Animal", overworld: "Overworld"):
-        if self.__fallback_direction is None:
-            directions = [
-                Position(1, 0),
-                Position(-1, 0),
-                Position(0, 1),
-                Position(0, -1),
-            ]
-            self.__fallback_direction = random.choice(directions)
-
-        new_x = max(
-            0, min(animal.position.x + self.__fallback_direction.x, overworld.width - 1)
-        )
-        new_y = max(
-            0,
-            min(animal.position.y + self.__fallback_direction.y, overworld.height - 1),
-        )
-
-        # If we hit the edge of the map, change direction
-        if new_y == overworld.height - 1 or new_y == 0:
-            self.__fallback_direction.y *= -1
-        if new_x == overworld.width - 1 or new_x == 0:
-            self.__fallback_direction.x *= -1
-
-        return Position(new_x, new_y)
 
 
 class SleepingState(AnimalState):
