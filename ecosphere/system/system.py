@@ -1,6 +1,7 @@
 import asyncio
 import curses
 import logging
+import traceback
 from typing import TYPE_CHECKING
 
 from ecosphere.abc.position import Position
@@ -130,6 +131,8 @@ class System(metaclass=SingletonMeta):
         except asyncio.CancelledError:
             logging.info("Tasks were cancelled.")
         except Exception as e:
+            if logging.root.level == logging.DEBUG:
+                traceback.print_exc()
             logging.error(f"Unhandled exception: {e}")
         finally:
             for task in tasks:
