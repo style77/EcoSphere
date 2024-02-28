@@ -36,11 +36,6 @@ class IdleState(AnimalState):
     async def handle(
         self, animal: "Animal", environment_context: "EnvironmentContext"
     ) -> None:
-        # if animal.energy >= 80:  # Animal is full of energy and can just have some fun
-        #     animal.state = MovingState()
-        # else:
-        #     animal.state = random.choice([MovingState(), SleepingState()])
-
         if self.health <= 0:
             if not isinstance(self.state, DeadState):
                 logging.debug(f"{self.id} has died.")
