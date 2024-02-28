@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 from ecosphere.entities.animal import Crab, Fish, Fox
+from ecosphere.entities.food_spawner import Berries, Mushrooms, Seaweeds, Wheats
 from ecosphere.entities.plant import Flower, Tree
 
 Biome = Literal[
@@ -63,12 +64,48 @@ ENTITY_BIOME_SPAWN_RATES = [
         spawn_rates=BiomeSpawnRate(
             WATER=0.8,
         ),
-    )
+    ),
+]
+
+
+@dataclass
+class FoodBiomeSpawnRates:
+    food_name: str
+    spawn_rates: BiomeSpawnRate
+
+
+FOOD_BIOME_SPAWN_RATES = [
+    FoodBiomeSpawnRates(
+        food_name="Berries",
+        spawn_rates=BiomeSpawnRate(
+            PLAINS=0.05,
+            FOREST=0.85
+        ),
+    ),
+    FoodBiomeSpawnRates(
+        food_name="Mushrooms",
+        spawn_rates=BiomeSpawnRate(
+            FOREST=0.7,
+        ),
+    ),
+    FoodBiomeSpawnRates(
+        food_name="Seaweeds",
+        spawn_rates=BiomeSpawnRate(
+            WATER=0.85,
+        ),
+    ),
+    FoodBiomeSpawnRates(
+        food_name="Wheats",
+        spawn_rates=BiomeSpawnRate(
+            PLAINS=0.6,
+        ),
+    ),
 ]
 
 
 ENTITIES = [Tree, Flower, Crab, Fox, Fish]
+SPAWNERS = [Berries, Mushrooms, Seaweeds, Wheats]
 
 MINUTE_LENGTH = 1  # seconds
 
-REFRESH_STATIC_AFTER = 3  # iterations = MINUTE_LENGTH * REFRESH_STATIC_AFTER
+REFRESH_STATIC_AFTER = 6  # iterations = MINUTE_LENGTH * REFRESH_STATIC_AFTER

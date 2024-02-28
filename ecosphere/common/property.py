@@ -25,3 +25,23 @@ class StatusProperty:
 
     perception_radius: int = 30
     movement_speed: float = 1
+
+
+@dataclass
+class SpawnerProperty:
+    """
+    Class representing the properties of a spawner in the overworld.
+    """
+
+    dispersal_speed: float = 0.05
+    dispersal_radius: int = 1
+    range_capacity: int = 4
+
+
+@dataclass
+class FoodProperty:
+    """
+    Class representing the properties of a food entity in the overworld.
+    """
+
+    nutrition: float = 10
