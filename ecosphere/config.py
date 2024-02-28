@@ -108,4 +108,4 @@ SPAWNERS = [Berries, Mushrooms, Seaweeds, Wheats]
 
 MINUTE_LENGTH = 1  # seconds
 
-REFRESH_STATIC_AFTER = 6  # iterations = MINUTE_LENGTH * REFRESH_STATIC_AFTER
+REFRESH_STATIC_AFTER = 1  # iterations = MINUTE_LENGTH * REFRESH_STATIC_AFTER
