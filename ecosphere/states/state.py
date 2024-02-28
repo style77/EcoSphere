@@ -1,8 +1,8 @@
-from abc import ABC, abstractmethod
 import random
+from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
-from ecosphere.abc.position import Position
 
+from ecosphere.abc.position import Position
 from ecosphere.abc.state import State
 
 if TYPE_CHECKING:

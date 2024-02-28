@@ -79,9 +79,7 @@ class BiomeManager:
         return curses.color_pair(color.value)
 
     @lru_cache
-    def get_biome_by_coords(
-        self, x: int, y: int
-    ) -> Literal[
+    def get_biome_by_coords(self, x: int, y: int) -> Literal[
         Biome.WATER,
         Biome.PLAINS,
         Biome.FOREST,
@@ -96,9 +94,7 @@ class BiomeManager:
         return self.get_biome(value)
 
     @lru_cache
-    def get_biome(
-        self, value: float
-    ) -> Literal[
+    def get_biome(self, value: float) -> Literal[
         Biome.WATER,
         Biome.PLAINS,
         Biome.FOREST,

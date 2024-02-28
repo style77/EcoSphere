@@ -1,9 +1,9 @@
 from .animal_state import (
     DeadState,
     ForagingState,
-    IdleState,
+    IdleState,  # noqa: F401
     MatingState,
     SeekingWaterState,
     SleepingState,
-)  # noqa: F401
+)
 from .state import AnimalState  # noqa: F401

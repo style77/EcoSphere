@@ -77,10 +77,7 @@ class FoodBiomeSpawnRates:
 FOOD_BIOME_SPAWN_RATES = [
     FoodBiomeSpawnRates(
         food_name="Berries",
-        spawn_rates=BiomeSpawnRate(
-            PLAINS=0.05,
-            FOREST=0.85
-        ),
+        spawn_rates=BiomeSpawnRate(PLAINS=0.05, FOREST=0.85),
     ),
     FoodBiomeSpawnRates(
         food_name="Mushrooms",

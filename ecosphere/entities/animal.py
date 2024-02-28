@@ -6,10 +6,8 @@ from typing import TYPE_CHECKING, List, Type
 
 from ecosphere.abc.entity import Entity
 from ecosphere.abc.position import Position
-
-from ecosphere.common import EnvironmentContext, bus, StatusProperty
+from ecosphere.common import EnvironmentContext, StatusProperty, bus
 from ecosphere.entities.food import Berry, Food, Mushroom, Seaweed, Wheat
-
 from ecosphere.states import (
     DeadState,
     ForagingState,
@@ -19,7 +17,6 @@ from ecosphere.states import (
     SleepingState,
 )
 from ecosphere.states.state import AnimalState
-
 from ecosphere.utils import clamp
 from ecosphere.world.biome import Biome, BiomeManager
 
@@ -47,6 +44,7 @@ class Animal(Entity):
         position: Position object representing the entity's location in the overworld
         representation: str representing the animal's representation in the overworld
     """
+
     _cant_go_on_land = False
     _can_eat: List[Type[Food]] = []
 
@@ -123,9 +121,19 @@ class Animal(Entity):
             nearby_entities=nearby_entities,
         )
 
-    async def move_towards(self, position: Position, overworld: "Overworld", biome_manager: BiomeManager):
-        dx = 1 if position.x > self.position.x else -1 if position.x < self.position.x else 0
-        dy = 1 if position.y > self.position.y else -1 if position.y < self.position.y else 0
+    async def move_towards(
+        self, position: Position, overworld: "Overworld", biome_manager: BiomeManager
+    ):
+        dx = (
+            1
+            if position.x > self.position.x
+            else -1 if position.x < self.position.x else 0
+        )
+        dy = (
+            1
+            if position.y > self.position.y
+            else -1 if position.y < self.position.y else 0
+        )
 
         new_position = Position(x=self.position.x + dx, y=self.position.y + dy)
         _old_position = self.position
@@ -133,7 +141,11 @@ class Animal(Entity):
         if self._cant_go_on_land:
             biome = biome_manager.get_biome_by_coords(new_position.x, new_position.y)
             if biome != Biome.WATER:
-                return await self.move_towards(self._calculate_position(overworld, biome_manager), overworld, biome_manager)
+                return await self.move_towards(
+                    self._calculate_position(overworld, biome_manager),
+                    overworld,
+                    biome_manager,
+                )
 
         await self._move(new_position.x, new_position.y, overwrite=True)
 

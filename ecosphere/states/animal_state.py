@@ -1,19 +1,16 @@
+import logging
 import random
 from typing import TYPE_CHECKING
+
 from ecosphere.abc.position import Position
-
 from ecosphere.states.state import AnimalState
-
-import logging
-
 from ecosphere.world.biome import Biome
-
 
 if TYPE_CHECKING:
     from ecosphere.common.environment_context import EnvironmentContext
     from ecosphere.entities.animal import Animal
-    from ecosphere.world.overworld import Overworld
     from ecosphere.entities.food import Food
+    from ecosphere.world.overworld import Overworld
 
 
 class DeadState(AnimalState):
@@ -171,14 +168,20 @@ class MatingState(AnimalState):
                 environment_context.biome_manager,
             )
 
-    def calculate_offspring_position(self, animal_position: Position, mate_position: Position) -> Position:
+    def calculate_offspring_position(
+        self, animal_position: Position, mate_position: Position
+    ) -> Position:
         return Position(
             (animal_position.x + mate_position.x) // 2,
             (animal_position.y + mate_position.y) // 2,
         )
 
-    def reproduce(self, animal: "Animal", mate: "Animal", overworld: "Overworld") -> None:
-        offspring_position = self.calculate_offspring_position(animal.position, mate.position)
+    def reproduce(
+        self, animal: "Animal", mate: "Animal", overworld: "Overworld"
+    ) -> None:
+        offspring_position = self.calculate_offspring_position(
+            animal.position, mate.position
+        )
 
         offspring = animal.__class__
         overworld.spawn_entity(offspring, offspring_position)

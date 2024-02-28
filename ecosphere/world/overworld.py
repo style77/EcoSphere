@@ -13,8 +13,8 @@ from ecosphere.common.singleton import SingletonMeta
 from ecosphere.config import (
     ENTITIES,
     ENTITY_BIOME_SPAWN_RATES,
-    MINUTE_LENGTH,
     FOOD_BIOME_SPAWN_RATES,
+    MINUTE_LENGTH,
     SPAWNERS,
 )
 from ecosphere.entities.food import Food
@@ -165,9 +165,11 @@ class Overworld(metaclass=SingletonMeta):
         """
         logging.info("Updating overworld.")
         update_tasks = [
-            asyncio.create_task(self.update_spawner(entity))
-            if isinstance(entity, FoodSpawner)
-            else asyncio.create_task(self.update_entity(entity))
+            (
+                asyncio.create_task(self.update_spawner(entity))
+                if isinstance(entity, FoodSpawner)
+                else asyncio.create_task(self.update_entity(entity))
+            )
             for entity in itertools.chain(
                 [e for e in self.entities if e.dynamic], self.spawners
             )

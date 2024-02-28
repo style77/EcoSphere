@@ -1,5 +1,5 @@
-from dataclasses import dataclass
 import random
+from dataclasses import dataclass
 
 
 @dataclass
@@ -14,7 +14,9 @@ class Position:
         return hash((self.x, self.y))
 
     @classmethod
-    def get_random_position_in_radius(cls, position: "Position", radius: int) -> "Position":
+    def get_random_position_in_radius(
+        cls, position: "Position", radius: int
+    ) -> "Position":
         return cls(
             position.x + random.randint(-radius, radius),
             position.y + random.randint(-radius, radius),

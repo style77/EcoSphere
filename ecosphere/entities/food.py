@@ -1,12 +1,13 @@
 from typing import TYPE_CHECKING, Literal
+
 from ecosphere.abc.entity import Entity
 from ecosphere.abc.position import Position
 from ecosphere.common.property import FoodProperty
 from ecosphere.world.biome import Biome
 
 if TYPE_CHECKING:
-    from ecosphere.world.overworld import Overworld
     from ecosphere.world.biome import BiomeManager
+    from ecosphere.world.overworld import Overworld
 
 
 class Food(Entity):
