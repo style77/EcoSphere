@@ -89,7 +89,9 @@ class System(metaclass=SingletonMeta):
 
     async def refresh_overworld(self):
         while self._running:
-            await self.overworld.draw(force_static=self._static_update_iter % REFRESH_STATIC_AFTER == 0)
+            await self.overworld.draw(
+                force_static=self._static_update_iter % REFRESH_STATIC_AFTER == 0
+            )
             self.overworld.stdscr.refresh()
 
             await asyncio.sleep(0.05)
@@ -100,36 +102,47 @@ class System(metaclass=SingletonMeta):
             await asyncio.sleep(0.1)
 
     async def run(self) -> None:
-        self.overworld.spawn_entities()
-        self.overworld.stdscr.nodelay(True)
-
-        key_listener_task = asyncio.create_task(self.key_listeners())
-
-        if self.system_info:
-            mouse_hover_task = asyncio.create_task(self.check_mouse_hover())
-            info_task = asyncio.create_task(self.update_system_info())
-
-        update_task = asyncio.create_task(self.overworld.update())
-        refresh_task = asyncio.create_task(self.refresh_overworld())
-
+        tasks = []
         try:
-            while self._running:
-                self._static_update_iter += 1
-                await asyncio.sleep(MINUTE_LENGTH)
-                bus.emit("minute:passed")
-        finally:
-            update_task.cancel()
-            refresh_task.cancel()
+            self.overworld.spawn_entities()
+            self.overworld.stdscr.nodelay(True)
+
+            key_listener_task = asyncio.create_task(self.key_listeners())
+            tasks.append(key_listener_task)
+
             if self.system_info:
-                info_task.cancel()
-                mouse_hover_task.cancel()
+                mouse_hover_task = asyncio.create_task(self.check_mouse_hover())
+                info_task = asyncio.create_task(self.update_system_info())
+                tasks.extend([mouse_hover_task, info_task])
 
-            key_listener_task.cancel()
+            update_task = asyncio.create_task(self.overworld.update())
+            refresh_task = asyncio.create_task(self.refresh_overworld())
+            tasks.extend([update_task, refresh_task])
 
-            self.overworld.stdscr.nodelay(False)
-            self.overworld.stdscr.clear()
-            self.overworld.stdscr.refresh()
+            await asyncio.wait(tasks, return_when=asyncio.FIRST_EXCEPTION)
 
-            curses.endwin()
-            bus.emit("system:shutdown")
-            logging.info("System shutting down")
+            for task in tasks:
+                if task.done() and task.exception():
+                    exception = task.exception()
+                    logging.error(f"An error occurred: {exception}")
+                    raise exception
+
+        except asyncio.CancelledError:
+            logging.info("Tasks were cancelled.")
+        except Exception as e:
+            logging.error(f"Unhandled exception: {e}")
+        finally:
+            for task in tasks:
+                if not task.done():
+                    task.cancel()
+            await asyncio.gather(*tasks, return_exceptions=True)
+            self.shutdown()
+
+    def shutdown(self):
+        # Clean up resources and prepare for shutdown
+        self.overworld.stdscr.nodelay(False)
+        self.overworld.stdscr.clear()
+        self.overworld.stdscr.refresh()
+        curses.endwin()
+        bus.emit("system:shutdown")
+        logging.info("System shutting down")
